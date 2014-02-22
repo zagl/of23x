@@ -16,7 +16,13 @@
 
         fvOptions.constrain(hEqn);
 
-        hEqn.solve();
+        solverPerformance sp;
+        sp = hEqn.solve();
+        Info<< "\n Solver Perfrmance sp\n";
+        Info<< sp << "\n";
+
+
+
 
         fvOptions.correct(h);
     }
