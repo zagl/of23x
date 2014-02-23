@@ -1,0 +1,229 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./configDict";
+#include "blockMeshParamDict";
+
+convertToMeters 1;
+
+vertices
+(
+    ($fminX $fminY $fminZ)
+    ($bminX $fminY $fminZ)
+    ($bmaxX $fminY $fminZ)
+    ($fmaxX $fminY $fminZ)
+    ($fminX $bminY $fminZ)
+    ($bminX $bminY $fminZ)
+    ($bmaxX $bminY $fminZ)
+    ($fmaxX $bminY $fminZ)
+    ($fminX $bmaxY $fminZ)
+    ($bminX $bmaxY $fminZ)
+    ($bmaxX $bmaxY $fminZ)
+    ($fmaxX $bmaxY $fminZ)
+    ($fminX $fmaxY $fminZ)
+    ($bminX $fmaxY $fminZ)
+    ($bmaxX $fmaxY $fminZ)
+    ($fmaxX $fmaxY $fminZ)
+    ($fminX $fminY $bminZ)
+    ($bminX $fminY $bminZ)
+    ($bmaxX $fminY $bminZ)
+    ($fmaxX $fminY $bminZ)
+    ($fminX $bminY $bminZ)
+    ($bminX $bminY $bminZ)
+    ($bmaxX $bminY $bminZ)
+    ($fmaxX $bminY $bminZ)
+    ($fminX $bmaxY $bminZ)
+    ($bminX $bmaxY $bminZ)
+    ($bmaxX $bmaxY $bminZ)
+    ($fmaxX $bmaxY $bminZ)
+    ($fminX $fmaxY $bminZ)
+    ($bminX $fmaxY $bminZ)
+    ($bmaxX $fmaxY $bminZ)
+    ($fmaxX $fmaxY $bminZ)
+    ($fminX $fminY $bmaxZ)
+    ($bminX $fminY $bmaxZ)
+    ($bmaxX $fminY $bmaxZ)
+    ($fmaxX $fminY $bmaxZ)
+    ($fminX $bminY $bmaxZ)
+    ($bminX $bminY $bmaxZ)
+    ($bmaxX $bminY $bmaxZ)
+    ($fmaxX $bminY $bmaxZ)
+    ($fminX $bmaxY $bmaxZ)
+    ($bminX $bmaxY $bmaxZ)
+    ($bmaxX $bmaxY $bmaxZ)
+    ($fmaxX $bmaxY $bmaxZ)
+    ($fminX $fmaxY $bmaxZ)
+    ($bminX $fmaxY $bmaxZ)
+    ($bmaxX $fmaxY $bmaxZ)
+    ($fmaxX $fmaxY $bmaxZ)
+    ($fminX $fminY $fmaxZ)
+    ($bminX $fminY $fmaxZ)
+    ($bmaxX $fminY $fmaxZ)
+    ($fmaxX $fminY $fmaxZ)
+    ($fminX $bminY $fmaxZ)
+    ($bminX $bminY $fmaxZ)
+    ($bmaxX $bminY $fmaxZ)
+    ($fmaxX $bminY $fmaxZ)
+    ($fminX $bmaxY $fmaxZ)
+    ($bminX $bmaxY $fmaxZ)
+    ($bmaxX $bmaxY $fmaxZ)
+    ($fmaxX $bmaxY $fmaxZ)
+    ($fminX $fmaxY $fmaxZ)
+    ($bminX $fmaxY $fmaxZ)
+    ($bmaxX $fmaxY $fmaxZ)
+    ($fmaxX $fmaxY $fmaxZ)
+);
+
+blocks
+(
+    hex (   0   1   5   4  16  17  21  20 ) ( $eminX $eminY $eminZ ) simpleGrading ( $gminX $gminY $gminZ )
+    hex (   1   2   6   5  17  18  22  21 ) ( $emidX $eminY $eminZ ) simpleGrading ( $gmidX $gminY $gminZ )
+    hex (   2   3   7   6  18  19  23  22 ) ( $emaxX $eminY $eminZ ) simpleGrading ( $gmaxX $gminY $gminZ )
+    hex (   4   5   9   8  20  21  25  24 ) ( $eminX $emidY $eminZ ) simpleGrading ( $gminX $gmidY $gminZ )
+    hex (   5   6  10   9  21  22  26  25 ) ( $emidX $emidY $eminZ ) simpleGrading ( $gmidX $gmidY $gminZ )
+    hex (   6   7  11  10  22  23  27  26 ) ( $emaxX $emidY $eminZ ) simpleGrading ( $gmaxX $gmidY $gminZ )
+    hex (   8   9  13  12  24  25  29  28 ) ( $eminX $emaxY $eminZ ) simpleGrading ( $gminX $gmaxY $gminZ )
+    hex (   9  10  14  13  25  26  30  29 ) ( $emidX $emaxY $eminZ ) simpleGrading ( $gmidX $gmaxY $gminZ )
+    hex (  10  11  15  14  26  27  31  30 ) ( $emaxX $emaxY $eminZ ) simpleGrading ( $gmaxX $gmaxY $gminZ )
+    hex (  16  17  21  20  32  33  37  36 ) ( $eminX $eminY $emidZ ) simpleGrading ( $gminX $gminY $gmidZ )
+    hex (  17  18  22  21  33  34  38  37 ) ( $emidX $eminY $emidZ ) simpleGrading ( $gmidX $gminY $gmidZ )
+    hex (  18  19  23  22  34  35  39  38 ) ( $emaxX $eminY $emidZ ) simpleGrading ( $gmaxX $gminY $gmidZ )
+    hex (  20  21  25  24  36  37  41  40 ) ( $eminX $emidY $emidZ ) simpleGrading ( $gminX $gmidY $gmidZ )
+    hex (  21  22  26  25  37  38  42  41 ) ( $emidX $emidY $emidZ ) simpleGrading ( $gmidX $gmidY $gmidZ )
+    hex (  22  23  27  26  38  39  43  42 ) ( $emaxX $emidY $emidZ ) simpleGrading ( $gmaxX $gmidY $gmidZ )
+    hex (  24  25  29  28  40  41  45  44 ) ( $eminX $emaxY $emidZ ) simpleGrading ( $gminX $gmaxY $gmidZ )
+    hex (  25  26  30  29  41  42  46  45 ) ( $emidX $emaxY $emidZ ) simpleGrading ( $gmidX $gmaxY $gmidZ )
+    hex (  26  27  31  30  42  43  47  46 ) ( $emaxX $emaxY $emidZ ) simpleGrading ( $gmaxX $gmaxY $gmidZ )
+    hex (  32  33  37  36  48  49  53  52 ) ( $eminX $eminY $emaxZ ) simpleGrading ( $gminX $gminY $gmaxZ )
+    hex (  33  34  38  37  49  50  54  53 ) ( $emidX $eminY $emaxZ ) simpleGrading ( $gmidX $gminY $gmaxZ )
+    hex (  34  35  39  38  50  51  55  54 ) ( $emaxX $eminY $emaxZ ) simpleGrading ( $gmaxX $gminY $gmaxZ )
+    hex (  36  37  41  40  52  53  57  56 ) ( $eminX $emidY $emaxZ ) simpleGrading ( $gminX $gmidY $gmaxZ )
+    hex (  37  38  42  41  53  54  58  57 ) ( $emidX $emidY $emaxZ ) simpleGrading ( $gmidX $gmidY $gmaxZ )
+    hex (  38  39  43  42  54  55  59  58 ) ( $emaxX $emidY $emaxZ ) simpleGrading ( $gmaxX $gmidY $gmaxZ )
+    hex (  40  41  45  44  56  57  61  60 ) ( $eminX $emaxY $emaxZ ) simpleGrading ( $gminX $gmaxY $gmaxZ )
+    hex (  41  42  46  45  57  58  62  61 ) ( $emidX $emaxY $emaxZ ) simpleGrading ( $gmidX $gmaxY $gmaxZ )
+    hex (  42  43  47  46  58  59  63  62 ) ( $emaxX $emaxY $emaxZ ) simpleGrading ( $gmaxX $gmaxY $gmaxZ )
+);
+
+edges
+(
+);
+
+boundary
+(
+    minX
+    {
+        type patch;
+        faces
+        (
+            (   0  16  20   4 )
+            (  16  32  36  20 )
+            (  32  48  52  36 )
+            (   4  20  24   8 )
+            (  20  36  40  24 )
+            (  36  52  56  40 )
+            (   8  24  28  12 )
+            (  24  40  44  28 )
+            (  40  56  60  44 )
+        );
+    }
+    maxX
+    {
+        type patch;
+        faces
+        (
+            (   7  23  19   3 )
+            (  23  39  35  19 )
+            (  39  55  51  35 )
+            (  11  27  23   7 )
+            (  27  43  39  23 )
+            (  43  59  55  39 )
+            (  15  31  27  11 )
+            (  31  47  43  27 )
+            (  47  63  59  43 )
+        );
+    }
+    minY
+    {
+        type patch;
+        faces
+        (
+            (   0   1  17  16 )
+            (   1   2  18  17 )
+            (   2   3  19  18 )
+            (  16  17  33  32 )
+            (  17  18  34  33 )
+            (  18  19  35  34 )
+            (  32  33  49  48 )
+            (  33  34  50  49 )
+            (  34  35  51  50 )
+        );
+    }
+    maxY
+    {
+        type patch;
+        faces
+        (
+            (  28  29  13  12 )
+            (  29  30  14  13 )
+            (  30  31  15  14 )
+            (  44  45  29  28 )
+            (  45  46  30  29 )
+            (  46  47  31  30 )
+            (  60  61  45  44 )
+            (  61  62  46  45 )
+            (  62  63  47  46 )
+        );
+    }
+    minZ
+    {
+        type patch;
+        faces
+        (
+            (   0   4   5   1 )
+            (   4   8   9   5 )
+            (   8  12  13   9 )
+            (   1   5   6   2 )
+            (   5   9  10   6 )
+            (   9  13  14  10 )
+            (   2   6   7   3 )
+            (   6  10  11   7 )
+            (  10  14  15  11 )
+        );
+    }
+    maxZ
+    {
+        type patch;
+        faces
+        (
+            (  49  53  52  48 )
+            (  53  57  56  52 )
+            (  57  61  60  56 )
+            (  50  54  53  49 )
+            (  54  58  57  53 )
+            (  58  62  61  57 )
+            (  51  55  54  50 )
+            (  55  59  58  54 )
+            (  59  63  62  58 )
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
