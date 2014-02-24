@@ -11,46 +11,55 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      configDict;
+    object      blockMeshParamDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-domain
+fluidBoundingBox
 {
-    elementLength   0.01;
-    fluidDistance   6{0.04};
-    outerGradient   1.2;
-    open            yes;
+    minX            -6;
+    minY            -3;
+    minZ            -3;
+    maxX            3;
+    maxY            3;
+    maxZ            3;
 }
 
-parameter
+geometryBoundingBox
 {
-    temperature     293.15;
-    gravity         (0. 0. -9.81);
-    inlet
-    {
-        velocity        (0. 0. 0.);
-        temperature     293.15;
-    }
+    minX            -1;
+    minY            -1;
+    minZ            -1;
+    maxX            1;
+    maxY            1;
+    maxZ            1;
 }
 
-solids
+edgeLength
 {
+    minX            5;
+    minY            5;
+    minZ            5;
+    midX            10;
+    midY            10;
+    midZ            10;
+    maxX            5;
+    maxY            5;
+    maxZ            5;
+}
 
+gradient
+{
+    minX            0.5;
+    minY            0.5;
+    minZ            0.5;
+    midX            1;
+    midY            1;
+    midZ            1;
+    maxX            2;
+    maxY            2;
+    maxZ            2;
 }
 
 
 // ************************************************************************* //
-
-//global
-//{
-//    elementLength   0.01;
-//    fluidDistance   0.01;
-//    velocity        (0. 0. 0.);
-//    gravity         (0. 0. -9.81);
-//    tunnel          no;
-//    temperature     293.15;
-//    temperatureIn   293.15;
-//}
-
-
