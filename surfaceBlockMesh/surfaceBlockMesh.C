@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
         IOobject::AUTO_WRITE
     );
     IOdictionary paramDict(paramDictIO);
-    dictionary& fluidBoundingBox = paramDict.subDict("fluidBoundingBox");
     
     
     List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
@@ -81,6 +80,7 @@ int main(int argc, char *argv[])
     
     
     
+    dictionary& fluidBoundingBox = paramDict.subDict("fluidBoundingBox");
     
     
     Info<< readScalar(fluidBoundingBox.lookup("minX"));
@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
     fluidBoundingBox.set("minX", -6.0);
     
     
-    List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
+//    List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
     
-    dist[0] = 0.05;
+//    dist[0] = 0.05;
     
     configDict.subDict("domain").set("fluidDistance", dist);
     
