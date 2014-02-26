@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for geom in constant/triSurface/*.stl
+do
+    if [ ${geom::1} = R ]; then
+        
+
+
+    fi
+done
