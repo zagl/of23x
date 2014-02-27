@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
     List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
     
     
+
+
     
     
     dictionary& fluidBoundingBox = paramDict.subDict("fluidBoundingBox");
