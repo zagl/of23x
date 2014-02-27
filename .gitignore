@@ -84,4 +84,7 @@ doc/Doxygen/DTAGS
 /.cproject
 /.project
 
+# ignore #codeStream compilation directory
+dynamicCode
+
 # end-of-file

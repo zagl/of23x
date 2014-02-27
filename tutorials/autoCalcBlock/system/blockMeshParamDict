@@ -15,9 +15,11 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include "configDict";
+
 fluidBoundingBox
 {
-    minX            -6;
+    minX            -6.0;
     minY            -3;
     minZ            -3;
     maxX            3;
@@ -25,7 +27,7 @@ fluidBoundingBox
     maxZ            3;
 }
 
-geometryBoundingBox
+solidBoundingBox
 {
     minX            -1;
     minY            -1;
