@@ -1,0 +1,100 @@
+#!/bin/bash
+
+
+###############################################################################
+function mergeCellRegions
+###############################################################################
+{
+  rm -f merge.setSet
+  for file in constant/polyMesh/sets/region*
+  do
+    region=$(basename $file .gz)
+
+    for file in ./constant/triSurface/*.{stl,obj,vtk}
+    do
+      solid=${file##*/}
+      solid=${solid%.*}
+      test ! "$solid" == '*' && 
+        echo "cellSet $region delete zoneToCell $solid" >> merge.setSet
+    done
+  done
+}
+
+###############################################################################
+function setCellRegions
+###############################################################################
+{
+  fluidNr=1
+  cellsRegionExists=false
+  batchfile=batch.setSet
+  
+  nCells=$(zcat -f constant/polyMesh/owner.gz | 
+           sed -n 's/^.*nCells:\([0-9]*\).*$/\1/p')
+  minCells=$(( $nCells / 50 ))
+  
+  echo "cellSet cells new" > $batchfile
+  for file in constant/polyMesh/sets/region*
+  do
+    name=$(basename $file .gz)
+    cells=$(zcat -f $file | egrep -m1 '^[0-9]+$')
+    
+    if [ $cells -ge $minCells ]
+    then
+      fluid=FLUID$fluidNr
+      fluidNr=$(expr $fluidNr + 1)
+      echo "cellSet $fluid new cellToCell $name" >> $batchfile
+      echo "cellZoneSet $fluid new setToCellZone $fluid" >> $batchfile
+      
+#      if test ! -e system/$fluid
+#      then 
+#        mkdir system/$fluid
+#        cd system/$fluid
+#        ln -s ../FLUID/* ./
+#        cd -
+#        
+#        mkdir constant/$fluid
+#        cd constant/$fluid
+#        ln -s ../FLUID/* ./
+#        cd -
+#      fi
+    elif [ $cells -ne 0 ]
+    then
+      echo "cellSet cells add cellToCell $name" >> $batchfile
+      cellsRegionExists=true
+    fi
+    echo "cellSet $name remove" >> $batchfile
+    echo "cellZoneSet $name remove" >> $batchfile
+  done
+  echo "cellZoneSet cells new setToCellZone cells" >> $batchfile
+
+  if $cellsRegionExists
+  then
+    for solid in ./constant/triSurface/*.stl
+    do
+      solid=$(basename $solid .stl)
+      echo "cellSet $solid new zoneToCell $solid" >> $batchfile
+      echo "cellSet $solid delete zoneToCell cells" >> $batchfile
+      echo "cellZoneSet $solid new setToCellZone $solid" >> $batchfile
+    done
+  fi
+}
+
+
+###############################################################################
+function splitRegions
+###############################################################################
+{
+  splitMeshRegions -cellZones -makeCellZones -overwrite > log.splitMeshRegions.first
+  
+  mergeCellRegions
+  setSet -batch merge.setSet > log.setSet.merge
+  
+  setCellRegions
+  setSet -batch batch.setSet > log.setSet.regions
+  
+  splitMeshRegions -cellZonesOnly -overwrite > log.splitMeshRegions.final
+  
+  paraFoam -touchAll
+}
+
+
