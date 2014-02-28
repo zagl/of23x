@@ -25,13 +25,17 @@ Application
     surfaceBoundingBox
 
 Description
-    Prints the bounding box of a surface.
+    Prints the bounding box of triSurfaces specified in a configDict file
+    and writes it to the dictionary.
 
 \*---------------------------------------------------------------------------*/
 
 #include "triSurface.H"
 #include "triSurfaceSearch.H"
 #include "argList.H"
+#include "IOdictionary.H"
+#include "Time.H"
+#include "polyMesh.H"
 
 using namespace Foam;
 
@@ -40,23 +44,60 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     argList::noParallel();
-    argList::validArgs.append("surfaceFile");
-    argList args(argc, argv);
+//    argList::validArgs.append("surfaceFile");
+    #include "setRootCase.H"
+    #include "createTime.H"     
+    runTime.functionObjects().off();
 
-    const fileName surfFileName = args[1];
+    const word dictName("configDict");
+    IOdictionary configDict
+    (
+        IOobject
+        (
+            dictName,
+            runTime.system(),
+            runTime,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::AUTO_WRITE
+        )
+    );    
+    const dictionary& solidsDict = configDict.subDict("solids");
 
-    Info<< "Reading surface from " << surfFileName << " ..." << nl << endl;
+    List<point> boundPoints;
+    
+    forAllConstIter(dictionary, solidsDict, iter)
+    {        
+        if (!iter().isDict())
+        {
+            continue;
+        } 
+        
+        const dictionary& solidDict = iter().dict();
+        const word surfName = iter().keyword();
+        word surfFileType = solidDict.lookup("fileType");
+        const fileName surfFileName = surfName + "." + surfFileType;
+        
+        Info<< "Reading surface from " << surfFileName << " ..." << endl;
+        
+        triSurface surf(runTime.constantPath()/"triSurface"/surfFileName);
+        
+        boundBox bound(surf.points());
+        boundPoints.append(bound.min());
+        boundPoints.append(bound.max());
+    }
 
-    // Read
-    // ~~~~
+    Info<< nl << "Bounding Box: " << boundBox(boundPoints) << nl << nl;
 
-    triSurface surf(surfFileName);
+    Info<<"Write " << dictName << " ..." << endl;
 
-    // write bounding box
-    Info<<"Bounding Box: " << boundBox(surf.points()) << nl;
+    dictionary& domainDict = configDict.subDict("domain");
+    domainDict.set("boundingBox", boundBox(boundPoints));
 
+    configDict.regIOobject::write();
+    
     Info<< "\nEnd\n" << endl;
 
+    
     return 0;
 }
 

@@ -17,7 +17,7 @@ FoamFile
 
 domain
 {
-    elementLength   0.001;
+    elementLength   0.002;
     fluidDistance   6 { 0.01 };
     boundingBox     ( -0.005 -0.005 -0.005 ) ( 0.015 0.005 0.005 );
     outerGradient   1.2;
@@ -55,5 +55,23 @@ solids
     }
 }
 
+blanks
+{
+}
 
+baffles
+{
+}
+
+rotations
+{
+}
+
+refinements
+{
+}
+
+fluids
+{
+}
 // ************************************************************************* //
