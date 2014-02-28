@@ -18,13 +18,18 @@ FoamFile
 
 #codeStream
 {
+    codeInclude
+    #{
+        #include "boundBox.H"
+    #};
+    
     code
     #{
-        scalar e = $:domain.elementLength;
-        scalar g = $:domain.outerGradient;
-
         dictionary domain = dict.subDict("domain");
-        List<List<scalar> > bb = domain.lookup("boundingBox");
+        
+        scalar e = readScalar(domain.lookup("elementLength"));
+        scalar g = readScalar(domain.lookup("outerGradient"));
+        boundBox bb = domain.lookup("boundingBox");
         List<scalar> d = domain.lookup("fluidDistance");
 
         scalar eminX = int(log((d[0])/e*(g-1)+1)/log(g) + 0.5);
@@ -33,23 +38,23 @@ FoamFile
         scalar emaxX = int(log((d[3])/e*(g-1)+1)/log(g) + 0.5);
         scalar emaxY = int(log((d[4])/e*(g-1)+1)/log(g) + 0.5);
         scalar emaxZ = int(log((d[5])/e*(g-1)+1)/log(g) + 0.5);
-        scalar emidX = int((bb[1][0] - bb[0][0])/e + 0.5);
-        scalar emidY = int((bb[1][1] - bb[0][1])/e + 0.5);
-        scalar emidZ = int((bb[1][2] - bb[0][2])/e + 0.5);
+        scalar emidX = int((bb.span().x())/e + 0.5);
+        scalar emidY = int((bb.span().y())/e + 0.5);
+        scalar emidZ = int((bb.span().z())/e + 0.5);
 
-        os << "sminX " << bb[0][0] << ";";
-        os << "sminY " << bb[0][1] << ";";
-        os << "sminZ " << bb[0][2] << ";";
-        os << "smaxX " << bb[1][0] << ";";
-        os << "smaxY " << bb[1][1] << ";";
-        os << "smaxZ " << bb[1][2] << ";";
+        os << "sminX " << bb.min().x() << ";";
+        os << "sminY " << bb.min().y() << ";";
+        os << "sminZ " << bb.min().z() << ";";
+        os << "smaxX " << bb.max().x() << ";";
+        os << "smaxY " << bb.max().y() << ";";
+        os << "smaxZ " << bb.max().z() << ";";
 
-        os << "fminX " << bb[0][0] - d[0] << ";";
-        os << "fminY " << bb[0][1] - d[1] << ";";
-        os << "fminZ " << bb[0][2] - d[2] << ";";
-        os << "fmaxX " << bb[1][0] + d[3] << ";";
-        os << "fmaxY " << bb[1][1] + d[4] << ";";
-        os << "fmaxZ " << bb[1][2] + d[5] << ";";
+        os << "fminX " << bb.min().x() - d[0] << ";";
+        os << "fminY " << bb.min().y() - d[1] << ";";
+        os << "fminZ " << bb.min().z() - d[2] << ";";
+        os << "fmaxX " << bb.max().x() + d[3] << ";";
+        os << "fmaxY " << bb.max().y() + d[4] << ";";
+        os << "fmaxZ " << bb.max().z() + d[5] << ";";
 
         os << "gminX " << 1/pow(g, eminX-1) << ";";
         os << "gminY " << 1/pow(g, eminY-1) << ";";

@@ -17,9 +17,9 @@ FoamFile
 
 domain
 {
-    elementLength   .2;
-    fluidDistance   6{1.};
-    boundingBox     ((-1 -2 -1) (1 2 1));
+    elementLength   0.001;
+    fluidDistance   6 { 0.01 };
+    boundingBox     ( -0.005 -0.005 -0.005 ) ( 0.015 0.005 0.005 );
     outerGradient   1.2;
     open            yes;
 }
@@ -27,10 +27,10 @@ domain
 parameter
 {
     temperature     293.15;
-    gravity         (0. 0. -9.81);
+    gravity         ( 0 0 -9.81 );
     inlet
     {
-        velocity        (0. 0. 0.);
+        velocity        ( 0 0 0 );
         temperature     293.15;
     }
 }
@@ -39,33 +39,21 @@ solids
 {
     solid1
     {
-        conductivity 210.0;
-        elementLength 0.001;
-        emissivity 0.8;
-        power 0;
+        conductivity    210;
+        elementLength   0.001;
+        emissivity      0.8;
+        power           0;
+        fileType        stl;
     }
-
     solid2
     {
-        conductivity 210.0;
-        elementLength 0.001;
-        emissivity 0.8;
-        power 0;
+        conductivity    210;
+        elementLength   0.001;
+        emissivity      0.8;
+        power           0;
+        fileType        stl;
     }
 }
 
 
 // ************************************************************************* //
-
-//global
-//{
-//    elementLength   0.01;
-//    fluidDistance   0.01;
-//    velocity        (0. 0. 0.);
-//    gravity         (0. 0. -9.81);
-//    tunnel          no;
-//    temperature     293.15;
-//    temperatureIn   293.15;
-//}
-
-

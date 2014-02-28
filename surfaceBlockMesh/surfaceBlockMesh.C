@@ -25,7 +25,8 @@ Application
     surfaceBoundingBox
 
 Description
-    Prints the bounding box of a surface.
+    Prints the bounding box of triSurfaces specified in a configDict file
+    and writes it to the dictionary.
 
 \*---------------------------------------------------------------------------*/
 
@@ -34,6 +35,7 @@ Description
 #include "argList.H"
 #include "IOdictionary.H"
 #include "Time.H"
+#include "polyMesh.H"
 
 using namespace Foam;
 
@@ -46,64 +48,56 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"     
     runTime.functionObjects().off();
-    
-//    const fileName surfFileName = args[1];
 
-//    Info<< "Reading surface from " << surfFileName << " ..." << nl << endl;
-
-    // Read
-    // ~~~~
-
-//    triSurface surf(surfFileName);
-
-    // write bounding box
-//    Info<<"Bounding Box: " << boundBox(surf.points()) << nl;
-    
     const word dictName("configDict");
-    #include "setSystemRunTimeDictionaryIO.H"
-    IOdictionary configDict(dictIO);
-    
-    const word paramDictName("blockMeshParamDict");
-    IOobject paramDictIO
+    IOdictionary configDict
     (
-        paramDictName,
-        runTime.system(),
-        runTime,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    );
-    IOdictionary paramDict(paramDictIO);
-    
-    
-    List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
-    
-    
+        IOobject
+        (
+            dictName,
+            runTime.system(),
+            runTime,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::AUTO_WRITE
+        )
+    );    
+    const dictionary& solidsDict = configDict.subDict("solids");
 
+    List<point> boundPoints;
+    
+    forAllConstIter(dictionary, solidsDict, iter)
+    {        
+        if (!iter().isDict())
+        {
+            continue;
+        } 
+        
+        const dictionary& solidDict = iter().dict();
+        const word surfName = iter().keyword();
+        word surfFileType = solidDict.lookup("fileType");
+        const fileName surfFileName = surfName + "." + surfFileType;
+        
+        Info<< "Reading surface from " << surfFileName << " ..." << endl;
+        
+        triSurface surf(runTime.constantPath()/"triSurface"/surfFileName);
+        
+        boundBox bound(surf.points());
+        boundPoints.append(bound.min());
+        boundPoints.append(bound.max());
+    }
 
-    
-    
-    dictionary& fluidBoundingBox = paramDict.subDict("fluidBoundingBox");
-    
-    
-    Info<< readScalar(fluidBoundingBox.lookup("minX"));
-    
-    fluidBoundingBox.set("minX", -6.0);
-    
-    
-//    List<scalar> dist = configDict.subDict("domain").lookup("fluidDistance");
-    
-//    dist[0] = 0.05;
-    
-    configDict.subDict("domain").set("fluidDistance", dist);
-    
-    Info<< configDict.toc();
-    
-    Info<< dist;
+    Info<< nl << "Bounding Box: " << boundBox(boundPoints) << nl << nl;
 
+    Info<<"Write " << dictName << " ..." << endl;
+
+    dictionary& domainDict = configDict.subDict("domain");
+    domainDict.set("boundingBox", boundBox(boundPoints));
+
+    configDict.regIOobject::write();
+    
     Info<< "\nEnd\n" << endl;
-    
-    runTime.writeNow();
 
+    
     return 0;
 }
 
