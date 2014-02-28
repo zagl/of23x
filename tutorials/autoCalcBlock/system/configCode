@@ -1,0 +1,245 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      configCode;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./system/configDict";
+
+#codeStream
+{
+    codeOptions
+    #{
+        -I$(LIB_SRC)/mesh/blockMesh/lnInclude
+    #};
+
+    codeLibs
+    #{
+        -lblockMesh
+    #};
+
+    codeInclude
+    #{
+        #include "boundBox.H"
+        #include "blockDescriptor.H"
+    #};
+
+    code
+    #{
+        dictionary domain = dict.subDict("domain");
+
+        scalar e = readScalar(domain.lookup("elementLength"));
+        scalar g = readScalar(domain.lookup("outerGradient"));
+        boundBox bb = domain.lookup("boundingBox");
+        List<scalar> d = domain.lookup("fluidDistance");
+
+
+        scalarList xval(4);
+        xval[0] = bb.min().x() - d[0];
+        xval[1] = bb.min().x();
+        xval[2] = bb.max().x();
+        xval[3] = bb.max().x() + d[3];
+
+        scalarList yval(4);
+        yval[0] = bb.min().y() - d[2];
+        yval[1] = bb.min().y();
+        yval[2] = bb.max().y();
+        yval[3] = bb.max().y() + d[4];
+
+        scalarList zval(4);
+        zval[0] = bb.min().z() - d[3];
+        zval[1] = bb.min().z();
+        zval[2] = bb.max().z();
+        zval[3] = bb.max().z() + d[5];
+
+        scalar eminX = int(log((d[0])/e*(g-1)+1)/log(g) + 0.5);
+        scalar eminY = int(log((d[1])/e*(g-1)+1)/log(g) + 0.5);
+        scalar eminZ = int(log((d[2])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxX = int(log((d[3])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxY = int(log((d[4])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxZ = int(log((d[5])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emidX = int((bb.span().x())/e + 0.5);
+        scalar emidY = int((bb.span().y())/e + 0.5);
+        scalar emidZ = int((bb.span().z())/e + 0.5);
+
+        scalarList eX(3);
+        eX[0] = eminX;
+        eX[1] = emidX;
+        eX[2] = emaxX;
+
+        scalarList eY(3);
+        eY[0] = eminY;
+        eY[1] = emidY;
+        eY[2] = emaxY;
+
+        scalarList eZ(3);
+        eZ[0] = eminZ;
+        eZ[1] = emidZ;
+        eZ[2] = emaxZ;
+
+        os << "sminX " << bb.min().x() << ";";
+        os << "sminY " << bb.min().y() << ";";
+        os << "sminZ " << bb.min().z() << ";";
+        os << "smaxX " << bb.max().x() << ";";
+        os << "smaxY " << bb.max().y() << ";";
+        os << "smaxZ " << bb.max().z() << ";";
+
+        os << "fminX " << bb.min().x() - d[0] << ";";
+        os << "fminY " << bb.min().y() - d[1] << ";";
+        os << "fminZ " << bb.min().z() - d[2] << ";";
+        os << "fmaxX " << bb.max().x() + d[3] << ";";
+        os << "fmaxY " << bb.max().y() + d[4] << ";";
+        os << "fmaxZ " << bb.max().z() + d[5] << ";";
+
+        os << "gminX " << 1/pow(g, eminX-1) << ";";
+        os << "gminY " << 1/pow(g, eminY-1) << ";";
+        os << "gminZ " << 1/pow(g, eminZ-1) << ";";
+        os << "gmidX " << 1 << ";";
+        os << "gmidY " << 1 << ";";
+        os << "gmidZ " << 1 << ";";
+        os << "gmaxX " << pow(g, eminX-1) << ";";
+        os << "gmaxY " << pow(g, eminY-1) << ";";
+        os << "gmaxZ " << pow(g, eminZ-1) << ";";
+        
+        scalar gminX = 1/pow(g, eminX-1);
+        scalar gminY = 1/pow(g, eminY-1);
+        scalar gminZ = 1/pow(g, eminZ-1);
+        scalar gmidX = 1;
+        scalar gmidY = 1;
+        scalar gmidZ = 1;
+        scalar gmaxX = pow(g, eminX-1);
+        scalar gmaxY = pow(g, eminY-1);
+        scalar gmaxZ = pow(g, eminZ-1);
+        
+        scalarList gX(3);
+        gX[0] = gminX;
+        gX[1] = gmidX;
+        gX[2] = gmaxX;
+
+        scalarList gY(3);
+        gY[0] = gminY;
+        gY[1] = gmidY;
+        gY[2] = gmaxY;
+
+        scalarList gZ(3);
+        gZ[0] = gminZ;
+        gZ[1] = gmidZ;
+        gZ[2] = gmaxZ;
+
+
+        os << "eminX " << eminX << ";";
+        os << "eminY " << eminY << ";";
+        os << "eminZ " << eminZ << ";";
+        os << "emidX " << emidX << ";";
+        os << "emidY " << emidY << ";";
+        os << "emidZ " << emidZ << ";";
+        os << "emaxX " << emaxX << ";";
+        os << "emaxY " << emaxY << ";";
+        os << "emaxZ " << emaxZ << ";";
+
+
+        pointField vertices;
+
+        forAll(zval, zvalI)
+        {
+            forAll(yval, yvalI)
+            {
+                forAll(xval, xvalI)
+                {
+                    point p(xval[xvalI], yval[yvalI], zval[zvalI]);
+                    vertices.append(p);
+                    //Info<< xval[xvalI] << yval[yvalI] << zval[zvalI] << nl;
+                }
+            }
+        }
+
+
+        os  << "blocks" << nl
+            << "27(" << nl;
+
+        wordList blocks;
+
+        for ( int k=0; k<3; k++ )
+        {
+            for ( int j=0; j<3; j++ )
+            {
+                for ( int i=0; i<3; i++ )
+                {
+                    string block = "hex ";
+                    os  << "    hex ( ";
+                    for ( int n=0; n<8; n++ )
+                    {
+                        label vertex = i+((n+1)>>1&1) + 4*(j+(n>>1&1)) + 16*(k+(n>>2));
+                        block = block + string(vertex) + " ";
+                        os  << vertex << " ";
+                    }
+                    block = block + ") ( "
+                        + string(eX[i]) + " "
+                        + string(eY[j]) + " "
+                        + string(eZ[k]) + " "
+                        + " ) simpleGrading ( "
+                        + string(gX[i]) + " "
+                        + string(gY[j]) + " "
+                        + string(gZ[k]) + " "
+                        + " )";
+
+                    os  << ") ( ";
+                    os  <<  eX[i] << " " << eY[j] << " " << eZ[k];
+                    os  << " ) simpleGrading ( ";
+                    os  <<  gX[i] << " " << gY[j] << " " << gZ[k];
+                    os  << " )" << nl;
+
+                    Info<< block << nl;
+
+               }
+            }
+        }
+        os  << ");" << nl;
+
+        wordList test;
+
+        test.append("hex asdf asdf () a ()");
+        test.append("hex asdf asdf () a ()");
+        test.append("hex asdf asdf () a ()");
+
+        string tt;
+
+        label ll = 1;
+
+
+
+        Info<< ll;
+
+
+
+        dictionary blockMesh;
+        blockMesh.add("blocks", test);
+        blockMesh.add("vertices", vertices);
+
+        os  << "bm" << blockMesh;
+        Info << "bm" << blockMesh;
+    #};
+};
+
+
+
+config
+{
+    blockMesh
+    {
+        vertices $:bm.vertices;
+
+        blocks $:blocks;
+    }
+}
+// ************************************************************************* //
