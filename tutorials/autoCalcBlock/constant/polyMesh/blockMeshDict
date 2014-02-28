@@ -14,176 +14,218 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/blockMeshParamDict";
 #include "./system/configDict";
 
-
-edgeLength
+#codeStream
 {
-    minX            #calc "int(($:solidBoundingBox.minX - $:fluidBoundingBox.minX)/$:domain.elementLength)";
-    minY            #calc "int(($:solidBoundingBox.minY - $:fluidBoundingBox.minY)/$:domain.elementLength)";
-    minZ            #calc "int(($:solidBoundingBox.minZ - $:fluidBoundingBox.minZ)/$:domain.elementLength)";
-    midX            #calc "int(($:solidBoundingBox.maxX - $:solidBoundingBox.minX)/$:domain.elementLength)";
-    midY            #calc "int(($:solidBoundingBox.maxY - $:solidBoundingBox.minY)/$:domain.elementLength)";
-    midZ            #calc "int(($:solidBoundingBox.maxZ - $:solidBoundingBox.minZ)/$:domain.elementLength)";
-    maxX            #calc "int(($:fluidBoundingBox.maxX - $:solidBoundingBox.maxX)/$:domain.elementLength)";
-    maxY            #calc "int(($:fluidBoundingBox.maxY - $:solidBoundingBox.maxY)/$:domain.elementLength)";
-    maxZ            #calc "int(($:fluidBoundingBox.maxZ - $:solidBoundingBox.maxZ)/$:domain.elementLength)";
-}
+    code
+    #{
+        scalar e = $:domain.elementLength;
+        scalar g = $:domain.outerGradient;
+
+        dictionary domain = dict.subDict("domain");
+        List<List<scalar> > bb = domain.lookup("boundingBox");
+        List<scalar> d = domain.lookup("fluidDistance");
+
+        scalar eminX = int(log((d[0])/e*(g-1)+1)/log(g) + 0.5);
+        scalar eminY = int(log((d[1])/e*(g-1)+1)/log(g) + 0.5);
+        scalar eminZ = int(log((d[2])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxX = int(log((d[3])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxY = int(log((d[4])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emaxZ = int(log((d[5])/e*(g-1)+1)/log(g) + 0.5);
+        scalar emidX = int((bb[1][0] - bb[0][0])/e + 0.5);
+        scalar emidY = int((bb[1][1] - bb[0][1])/e + 0.5);
+        scalar emidZ = int((bb[1][2] - bb[0][2])/e + 0.5);
+
+        os << "sminX " << bb[0][0] << ";";
+        os << "sminY " << bb[0][1] << ";";
+        os << "sminZ " << bb[0][2] << ";";
+        os << "smaxX " << bb[1][0] << ";";
+        os << "smaxY " << bb[1][1] << ";";
+        os << "smaxZ " << bb[1][2] << ";";
+
+        os << "fminX " << bb[0][0] - d[0] << ";";
+        os << "fminY " << bb[0][1] - d[1] << ";";
+        os << "fminZ " << bb[0][2] - d[2] << ";";
+        os << "fmaxX " << bb[1][0] + d[3] << ";";
+        os << "fmaxY " << bb[1][1] + d[4] << ";";
+        os << "fmaxZ " << bb[1][2] + d[5] << ";";
+
+        os << "gminX " << 1/pow(g, eminX-1) << ";";
+        os << "gminY " << 1/pow(g, eminY-1) << ";";
+        os << "gminZ " << 1/pow(g, eminZ-1) << ";";
+        os << "gmidX " << 1 << ";";
+        os << "gmidY " << 1 << ";";
+        os << "gmidZ " << 1 << ";";
+        os << "gmaxX " << pow(g, eminX-1) << ";";
+        os << "gmaxY " << pow(g, eminY-1) << ";";
+        os << "gmaxZ " << pow(g, eminZ-1) << ";";
+
+        os << "eminX " << eminX << ";";
+        os << "eminY " << eminY << ";";
+        os << "eminZ " << eminZ << ";";
+        os << "emidX " << emidX << ";";
+        os << "emidY " << emidY << ";";
+        os << "emidZ " << emidZ << ";";
+        os << "emaxX " << emaxX << ";";
+        os << "emaxY " << emaxY << ";";
+        os << "emaxZ " << emaxZ << ";";
+    #};
+};
 
 convertToMeters 1;
 
 vertices
 (
-    ($fluidBoundingBox.minX $fluidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.minX $solidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.minY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.minX $solidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.maxY $fluidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.minY $solidBoundingBox.minZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.minY $solidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.minY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.minY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.minY $solidBoundingBox.minZ)
-    ($solidBoundingBox.minX $solidBoundingBox.minY $solidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.minY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.minY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($solidBoundingBox.minX $solidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.maxY $solidBoundingBox.minZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $solidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.minY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $solidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.maxY $solidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $solidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.minY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $solidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $solidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $solidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $solidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.minX $fluidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.minX $fluidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($solidBoundingBox.maxX $fluidBoundingBox.maxY $fluidBoundingBox.maxZ)
-    ($fluidBoundingBox.maxX $fluidBoundingBox.maxY $fluidBoundingBox.maxZ)
+    ($fminX $fminY $fminZ)
+    ($sminX $fminY $fminZ)
+    ($smaxX $fminY $fminZ)
+    ($fmaxX $fminY $fminZ)
+    ($fminX $sminY $fminZ)
+    ($sminX $sminY $fminZ)
+    ($smaxX $sminY $fminZ)
+    ($fmaxX $sminY $fminZ)
+    ($fminX $smaxY $fminZ)
+    ($sminX $smaxY $fminZ)
+    ($smaxX $smaxY $fminZ)
+    ($fmaxX $smaxY $fminZ)
+    ($fminX $fmaxY $fminZ)
+    ($sminX $fmaxY $fminZ)
+    ($smaxX $fmaxY $fminZ)
+    ($fmaxX $fmaxY $fminZ)
+    ($fminX $fminY $sminZ)
+    ($sminX $fminY $sminZ)
+    ($smaxX $fminY $sminZ)
+    ($fmaxX $fminY $sminZ)
+    ($fminX $sminY $sminZ)
+    ($sminX $sminY $sminZ)
+    ($smaxX $sminY $sminZ)
+    ($fmaxX $sminY $sminZ)
+    ($fminX $smaxY $sminZ)
+    ($sminX $smaxY $sminZ)
+    ($smaxX $smaxY $sminZ)
+    ($fmaxX $smaxY $sminZ)
+    ($fminX $fmaxY $sminZ)
+    ($sminX $fmaxY $sminZ)
+    ($smaxX $fmaxY $sminZ)
+    ($fmaxX $fmaxY $sminZ)
+    ($fminX $fminY $smaxZ)
+    ($sminX $fminY $smaxZ)
+    ($smaxX $fminY $smaxZ)
+    ($fmaxX $fminY $smaxZ)
+    ($fminX $sminY $smaxZ)
+    ($sminX $sminY $smaxZ)
+    ($smaxX $sminY $smaxZ)
+    ($fmaxX $sminY $smaxZ)
+    ($fminX $smaxY $smaxZ)
+    ($sminX $smaxY $smaxZ)
+    ($smaxX $smaxY $smaxZ)
+    ($fmaxX $smaxY $smaxZ)
+    ($fminX $fmaxY $smaxZ)
+    ($sminX $fmaxY $smaxZ)
+    ($smaxX $fmaxY $smaxZ)
+    ($fmaxX $fmaxY $smaxZ)
+    ($fminX $fminY $fmaxZ)
+    ($sminX $fminY $fmaxZ)
+    ($smaxX $fminY $fmaxZ)
+    ($fmaxX $fminY $fmaxZ)
+    ($fminX $sminY $fmaxZ)
+    ($sminX $sminY $fmaxZ)
+    ($smaxX $sminY $fmaxZ)
+    ($fmaxX $sminY $fmaxZ)
+    ($fminX $smaxY $fmaxZ)
+    ($sminX $smaxY $fmaxZ)
+    ($smaxX $smaxY $fmaxZ)
+    ($fmaxX $smaxY $fmaxZ)
+    ($fminX $fmaxY $fmaxZ)
+    ($sminX $fmaxY $fmaxZ)
+    ($smaxX $fmaxY $fmaxZ)
+    ($fmaxX $fmaxY $fmaxZ)
 );
 
 blocks
 (
     hex (   0   1   5   4  16  17  21  20 )
-        ( $edgeLength.minX $edgeLength.minY $edgeLength.minZ ) simpleGrading
-        ( $gradient.minX $gradient.minY $gradient.minZ )
+        ( $eminX $eminY $eminZ ) simpleGrading
+        ( $gminX $gminY $gminZ )
     hex (   1   2   6   5  17  18  22  21 )
-        ( $edgeLength.midX $edgeLength.minY $edgeLength.minZ ) simpleGrading
-        ( $gradient.midX $gradient.minY $gradient.minZ )
+        ( $emidX $eminY $eminZ ) simpleGrading
+        ( $gmidX $gminY $gminZ )
     hex (   2   3   7   6  18  19  23  22 )
-        ( $edgeLength.maxX $edgeLength.minY $edgeLength.minZ ) simpleGrading
-        ( $gradient.maxX $gradient.minY $gradient.minZ )
+        ( $emaxX $eminY $eminZ ) simpleGrading
+        ( $gmaxX $gminY $gminZ )
     hex (   4   5   9   8  20  21  25  24 )
-        ( $edgeLength.minX $edgeLength.midY $edgeLength.minZ ) simpleGrading
-        ( $gradient.minX $gradient.midY $gradient.minZ )
+        ( $eminX $emidY $eminZ ) simpleGrading
+        ( $gminX $gmidY $gminZ )
     hex (   5   6  10   9  21  22  26  25 )
-        ( $edgeLength.midX $edgeLength.midY $edgeLength.minZ ) simpleGrading
-        ( $gradient.midX $gradient.midY $gradient.minZ )
+        ( $emidX $emidY $eminZ ) simpleGrading
+        ( $gmidX $gmidY $gminZ )
     hex (   6   7  11  10  22  23  27  26 )
-        ( $edgeLength.maxX $edgeLength.midY $edgeLength.minZ ) simpleGrading
-        ( $gradient.maxX $gradient.midY $gradient.minZ )
+        ( $emaxX $emidY $eminZ ) simpleGrading
+        ( $gmaxX $gmidY $gminZ )
     hex (   8   9  13  12  24  25  29  28 )
-        ( $edgeLength.minX $edgeLength.maxY $edgeLength.minZ ) simpleGrading
-        ( $gradient.minX $gradient.maxY $gradient.minZ )
+        ( $eminX $emaxY $eminZ ) simpleGrading
+        ( $gminX $gmaxY $gminZ )
     hex (   9  10  14  13  25  26  30  29 )
-        ( $edgeLength.midX $edgeLength.maxY $edgeLength.minZ ) simpleGrading
-        ( $gradient.midX $gradient.maxY $gradient.minZ )
+        ( $emidX $emaxY $eminZ ) simpleGrading
+        ( $gmidX $gmaxY $gminZ )
     hex (  10  11  15  14  26  27  31  30 )
-        ( $edgeLength.maxX $edgeLength.maxY $edgeLength.minZ ) simpleGrading
-        ( $gradient.maxX $gradient.maxY $gradient.minZ )
+        ( $emaxX $emaxY $eminZ ) simpleGrading
+        ( $gmaxX $gmaxY $gminZ )
     hex (  16  17  21  20  32  33  37  36 )
-        ( $edgeLength.minX $edgeLength.minY $edgeLength.midZ ) simpleGrading
-        ( $gradient.minX $gradient.minY $gradient.midZ )
+        ( $eminX $eminY $emidZ ) simpleGrading
+        ( $gminX $gminY $gmidZ )
     hex (  17  18  22  21  33  34  38  37 )
-        ( $edgeLength.midX $edgeLength.minY $edgeLength.midZ ) simpleGrading
-        ( $gradient.midX $gradient.minY $gradient.midZ )
+        ( $emidX $eminY $emidZ ) simpleGrading
+        ( $gmidX $gminY $gmidZ )
     hex (  18  19  23  22  34  35  39  38 )
-        ( $edgeLength.maxX $edgeLength.minY $edgeLength.midZ ) simpleGrading
-        ( $gradient.maxX $gradient.minY $gradient.midZ )
+        ( $emaxX $eminY $emidZ ) simpleGrading
+        ( $gmaxX $gminY $gmidZ )
     hex (  20  21  25  24  36  37  41  40 )
-        ( $edgeLength.minX $edgeLength.midY $edgeLength.midZ ) simpleGrading
-        ( $gradient.minX $gradient.midY $gradient.midZ )
+        ( $eminX $emidY $emidZ ) simpleGrading
+        ( $gminX $gmidY $gmidZ )
     hex (  21  22  26  25  37  38  42  41 )
-        ( $edgeLength.midX $edgeLength.midY $edgeLength.midZ ) simpleGrading
-        ( $gradient.midX $gradient.midY $gradient.midZ )
+        ( $emidX $emidY $emidZ ) simpleGrading
+        ( $gmidX $gmidY $gmidZ )
     hex (  22  23  27  26  38  39  43  42 )
-        ( $edgeLength.maxX $edgeLength.midY $edgeLength.midZ ) simpleGrading
-        ( $gradient.maxX $gradient.midY $gradient.midZ )
+        ( $emaxX $emidY $emidZ ) simpleGrading
+        ( $gmaxX $gmidY $gmidZ )
     hex (  24  25  29  28  40  41  45  44 )
-        ( $edgeLength.minX $edgeLength.maxY $edgeLength.midZ ) simpleGrading
-        ( $gradient.minX $gradient.maxY $gradient.midZ )
+        ( $eminX $emaxY $emidZ ) simpleGrading
+        ( $gminX $gmaxY $gmidZ )
     hex (  25  26  30  29  41  42  46  45 )
-        ( $edgeLength.midX $edgeLength.maxY $edgeLength.midZ ) simpleGrading
-        ( $gradient.midX $gradient.maxY $gradient.midZ )
+        ( $emidX $emaxY $emidZ ) simpleGrading
+        ( $gmidX $gmaxY $gmidZ )
     hex (  26  27  31  30  42  43  47  46 )
-        ( $edgeLength.maxX $edgeLength.maxY $edgeLength.midZ ) simpleGrading
-        ( $gradient.maxX $gradient.maxY $gradient.midZ )
+        ( $emaxX $emaxY $emidZ ) simpleGrading
+        ( $gmaxX $gmaxY $gmidZ )
     hex (  32  33  37  36  48  49  53  52 )
-        ( $edgeLength.minX $edgeLength.minY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.minX $gradient.minY $gradient.maxZ )
+        ( $eminX $eminY $emaxZ ) simpleGrading
+        ( $gminX $gminY $gmaxZ )
     hex (  33  34  38  37  49  50  54  53 )
-        ( $edgeLength.midX $edgeLength.minY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.midX $gradient.minY $gradient.maxZ )
+        ( $emidX $eminY $emaxZ ) simpleGrading
+        ( $gmidX $gminY $gmaxZ )
     hex (  34  35  39  38  50  51  55  54 )
-        ( $edgeLength.maxX $edgeLength.minY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.maxX $gradient.minY $gradient.maxZ )
+        ( $emaxX $eminY $emaxZ ) simpleGrading
+        ( $gmaxX $gminY $gmaxZ )
     hex (  36  37  41  40  52  53  57  56 )
-        ( $edgeLength.minX $edgeLength.midY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.minX $gradient.midY $gradient.maxZ )
+        ( $eminX $emidY $emaxZ ) simpleGrading
+        ( $gminX $gmidY $gmaxZ )
     hex (  37  38  42  41  53  54  58  57 )
-        ( $edgeLength.midX $edgeLength.midY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.midX $gradient.midY $gradient.maxZ )
+        ( $emidX $emidY $emaxZ ) simpleGrading
+        ( $gmidX $gmidY $gmaxZ )
     hex (  38  39  43  42  54  55  59  58 )
-        ( $edgeLength.maxX $edgeLength.midY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.maxX $gradient.midY $gradient.maxZ )
+        ( $emaxX $emidY $emaxZ ) simpleGrading
+        ( $gmaxX $gmidY $gmaxZ )
     hex (  40  41  45  44  56  57  61  60 )
-        ( $edgeLength.minX $edgeLength.maxY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.minX $gradient.maxY $gradient.maxZ )
+        ( $eminX $emaxY $emaxZ ) simpleGrading
+        ( $gminX $gmaxY $gmaxZ )
     hex (  41  42  46  45  57  58  62  61 )
-        ( $edgeLength.midX $edgeLength.maxY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.midX $gradient.maxY $gradient.maxZ )
+        ( $emidX $emaxY $emaxZ ) simpleGrading
+        ( $gmidX $gmaxY $gmaxZ )
     hex (  42  43  47  46  58  59  63  62 )
-        ( $edgeLength.maxX $edgeLength.maxY $edgeLength.maxZ ) simpleGrading
-        ( $gradient.maxX $gradient.maxY $gradient.maxZ )
+        ( $emaxX $emaxY $emaxZ ) simpleGrading
+        ( $gmaxX $gmaxY $gmaxZ )
 );
 
 edges

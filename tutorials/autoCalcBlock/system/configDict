@@ -17,8 +17,9 @@ FoamFile
 
 domain
 {
-    elementLength   .5;
-    fluidDistance   6{0.04};
+    elementLength   .2;
+    fluidDistance   6{1.};
+    boundingBox     ((-1 -2 -1) (1 2 1));
     outerGradient   1.2;
     open            yes;
 }

@@ -85,15 +85,15 @@ function splitRegions
 ###############################################################################
 {
   splitMeshRegions -cellZones -makeCellZones -overwrite > log.splitMeshRegions.first
-  
+
   mergeCellRegions
   setSet -batch merge.setSet > log.setSet.merge
-  
+
   setCellRegions
   setSet -batch batch.setSet > log.setSet.regions
-  
+
   splitMeshRegions -cellZonesOnly -overwrite > log.splitMeshRegions.final
-  
+
   paraFoam -touchAll
 }
 
