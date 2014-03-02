@@ -15,21 +15,13 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-domain
+config
 {
     elementLength   0.002;
-    fluidDistance   6 { 0.01 };
-    boundingBox
-    (
-        ( -0.005 -0.005 -0.005 )
-        ( 0.015 0.005 0.005 )
-    );
-    outerGradient   1.2;
+    d               0.01;
+    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
+    elementGradient 1.2;
     open            yes;
-}
-
-parameter
-{
     temperature     293.15;
     gravity         ( 0 0 -9.81 );
     inlet
@@ -37,45 +29,8 @@ parameter
         velocity        ( 0 0 0 );
         temperature     293.15;
     }
+
+    #include "variableConfigDict"
 }
 
-solids
-{
-    solid1
-    {
-        conductivity    210;
-        elementLength   0.001;
-        emissivity      0.8;
-        power           0;
-        fileType        stl;
-    }
-    solid2
-    {
-        conductivity    210;
-        elementLength   0.001;
-        emissivity      0.8;
-        power           0;
-        fileType        stl;
-    }
-}
-
-blanks
-{
-}
-
-baffles
-{
-}
-
-rotations
-{
-}
-
-refinements
-{
-}
-
-fluids
-{
-}
 // ************************************************************************* //

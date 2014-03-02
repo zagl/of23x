@@ -11,30 +11,51 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      blockMeshParamDict;
+    object      variableConfigDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "configDict";
+boundingBox     2 ( ( -0.005 -0.005 -0.005 ) ( 0.015 0.005 0.005 ) );
 
-fluidBoundingBox
+solids
 {
-    minX            -3;
-    minY            -3;
-    minZ            -3;
-    maxX            3;
-    maxY            3;
-    maxZ            3;
+    solid1
+    {
+        conductivity    210;
+        elementLength   0.001;
+        emissivity      0.8;
+        power           0;
+        fileType        stl;
+    }
+    solid2
+    {
+        conductivity    210;
+        elementLength   0.001;
+        emissivity      0.8;
+        power           0;
+        fileType        stl;
+    }
 }
 
-solidBoundingBox
+blanks
 {
-    minX            -1;
-    minY            -1;
-    minZ            -1;
-    maxX            1;
-    maxY            1;
-    maxZ            1;
 }
+
+baffles
+{
+}
+
+rotations
+{
+}
+
+refinements
+{
+}
+
+fluids
+{
+}
+
 
 // ************************************************************************* //

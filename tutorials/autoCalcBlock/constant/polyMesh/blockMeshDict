@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configCodeDict";
+#include "./system/codeDict";
 
 convertToMeters 1;
 
@@ -129,5 +129,6 @@ boundary
 mergePatchPairs
 (
 );
+
 
 // ************************************************************************* //

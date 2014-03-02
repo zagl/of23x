@@ -31,7 +31,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "triSurface.H"
-#include "triSurfaceSearch.H"
+//#include "triSurfaceSearch.H"
 #include "argList.H"
 #include "IOdictionary.H"
 #include "Time.H"
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"     
     runTime.functionObjects().off();
 
-    const word dictName("configDict");
+    const word dictName("variableConfigDict");
     IOdictionary configDict
     (
         IOobject
@@ -60,41 +60,45 @@ int main(int argc, char *argv[])
             IOobject::MUST_READ_IF_MODIFIED,
             IOobject::AUTO_WRITE
         )
-    );    
+    );
     const dictionary& solidsDict = configDict.subDict("solids");
 
     List<point> boundPoints;
-    
+
     forAllConstIter(dictionary, solidsDict, iter)
-    {        
+    {
         if (!iter().isDict())
         {
             continue;
-        } 
-        
+        }
+
         const dictionary& solidDict = iter().dict();
         const word surfName = iter().keyword();
         word surfFileType = solidDict.lookup("fileType");
         const fileName surfFileName = surfName + "." + surfFileType;
-        
+
         Info<< "Reading surface from " << surfFileName << " ..." << endl;
-        
+
         triSurface surf(runTime.constantPath()/"triSurface"/surfFileName);
-        
+
         boundBox bound(surf.points());
         boundPoints.append(bound.min());
         boundPoints.append(bound.max());
     }
 
-    Info<< nl << "Bounding Box: " << boundBox(boundPoints) << nl << nl;
+    pointField boundingBoxPoints(2);
+    boundBox boundingBox(boundPoints);
+    boundingBoxPoints[0] = boundingBox.min();
+    boundingBoxPoints[1] = boundingBox.max();
+
+    Info<< nl << "Bounding Box: " << boundingBox << nl << nl;
 
     Info<<"Write " << dictName << " ..." << endl;
 
-    dictionary& domainDict = configDict.subDict("domain");
-    domainDict.set("boundingBox", boundBox(boundPoints));
+    configDict.set("boundingBox", boundingBoxPoints);
 
     configDict.regIOobject::write();
-    
+
     Info<< "\nEnd\n" << endl;
 
     
