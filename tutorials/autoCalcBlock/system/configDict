@@ -19,7 +19,11 @@ domain
 {
     elementLength   0.002;
     fluidDistance   6 { 0.01 };
-    boundingBox     ( -0.005 -0.005 -0.005 ) ( 0.015 0.005 0.005 );
+    boundingBox
+    (
+        ( -0.005 -0.005 -0.005 )
+        ( 0.015 0.005 0.005 )
+    );
     outerGradient   1.2;
     open            yes;
 }

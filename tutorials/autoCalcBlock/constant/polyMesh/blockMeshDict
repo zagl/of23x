@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configCode";
+#include "./system/configCodeDict";
 
 convertToMeters 1;
 
