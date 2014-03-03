@@ -16,81 +16,11 @@ snap true;
 
 addLayers false; 	
 
-#include "./system/configDict"
-#include "./system/configCode"
-
-
-#codeStream
-{
-    code
-    #{
-        const dictionary& solidsDict = dict.subDict("solids");
-        const dictionary& blanksDict = dict.subDict("blanks");
-        const dictionary& bafflesDict = dict.subDict("baffles");
-        const dictionary& rotationsDict = dict.subDict("rotations");
-        const dictionary& refinementsDict = dict.subDict("refinements");
-
-        dictionary geometriesDict;
-        geometriesDict.merge(solidsDict);
-        geometriesDict.merge(blanksDict);
-        geometriesDict.merge(bafflesDict);
-        geometriesDict.merge(rotationsDict);
-        geometriesDict.merge(refinementsDict);
-        
-        dictionary config;
-        dictionary geometry;
-        
-        
-        forAllConstIter(dictionary, geometriesDict, iter)
-        {
-            const dictionary& geomDict = iter().dict();
-            const word geomName = iter().keyword();
-            word geomType = geomDict.lookup("fileType");
-            const fileName geomFileName = geomName + "." + geomType;
-            dictionary entry;
-            entry.set("name", geomName);
-            entry.set("type", "triSurfaceMesh");
-            geometry.set(geomFileName, entry);
-        }
-        
-        
-        forAllConstIter(dictionary, geometriesDict, iter)
-        {
-            const dictionary& geomDict = iter().dict();
-            const word geomName = iter().keyword();
-            word geomType = geomDict.lookup("fileType");
-            const fileName geomFileName = geomName + "." + geomType;
-            
-            
-            
-//            os  << geomFileName 
-//                << "{"
-//                << "name " << geomName << ";"
-//                << "type triSurfaceMesh;"
-//                << "}";
-
-//    solid1
-//    {
-//      cellZone solid1;
-//      cellZoneInside inside;
-//      faceZone solid1;
-//      level
-//        (
-//          1
-//          1
-//        );
-//    }
-        }  
-        
-        config.add("geometry", geometry);
-        
-        os  << "config" << config;
-    #};
-}
+#include "./system/codeDict"
 
 geometry
 {
-    $:config.geometry
+    $:config.snappyHexMesh.geometry
 }
 
 castellatedMeshControls
@@ -104,35 +34,14 @@ castellatedMeshControls
     ); 	
   refinementSurfaces
   {
-    solid1
-    {
-      cellZone solid1;
-      cellZoneInside inside;
-      faceZone solid1;
-      level
-        (
-          1
-          1
-        );
-    }
-    solid2
-    {
-      cellZone solid2;
-      cellZoneInside inside;
-      faceZone solid2;
-      level
-        (
-          1
-          1
-        );
-    }
-
+    $:config.snappyHexMesh.refinementSurfaces
   } 	
   resolveFeatureAngle 30; 	
   refinementRegions
   {
+    $:config.snappyHexMesh.refinementRegions
   } 	
-  locationInMesh (0.0003389 0.0003389 0.0002889); 	
+  locationInMesh $:config.snappyHexMesh.locationInMesh;
   allowFreeStandingZoneFaces true; 	
 } 	
 

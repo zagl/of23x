@@ -27,30 +27,52 @@ solids
         power           0;
         fileType        stl;
     }
-    solid2
-    {
-        conductivity    210;
-        elementLength   0.001;
-        emissivity      0.8;
-        power           0;
-        fileType        stl;
-    }
+//    solid2
+//    {
+//        conductivity    210;
+//        elementLength   0.001;
+//        emissivity      0.8;
+//        power           0;
+//        fileType        stl;
+//    }
 }
 
 blanks
 {
+//    blank
+//    {
+//        elementLength   0.001;
+//        fileType        stl;
+//    }
 }
 
 baffles
 {
+//    baffle
+//    {
+//        elementLength   0.001;
+//        thickness       0.001;
+//        kappa           5.0;
+//        fileType        stl;
+//    }
 }
 
 rotations
 {
+//    ROT1
+//    {
+//        elementLength   0.001;
+//        fileType        stl;
+//    }
 }
 
 refinements
 {
+    solid2
+    {
+        elementLength   0.001;
+        fileType        stl;
+    }
 }
 
 fluids
