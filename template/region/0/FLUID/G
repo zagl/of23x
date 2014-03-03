@@ -20,22 +20,22 @@ internalField   uniform 0;
 
 boundaryField
 {
-    openWall
+    ".*"
     {
         type            MarshakRadiation;
-        T               T; 	
-        emissivityMode  lookup; 	
-        emissivity      uniform 1.0; 	
-        value           uniform 0; 	
+        T               T;
+        emissivityMode  lookup;
+        emissivity      uniform 1.0;
+        value           uniform 0;
     }
 
-    solidWall
+    coupledRadiationWall
     {
         type            MarshakRadiation;
         T               T;
         emissivityMode  solidRadiation;
-        value           uniform 0;		
-    } 
+        value           uniform 0;
+    }
 }
 
 // ************************************************************************* //

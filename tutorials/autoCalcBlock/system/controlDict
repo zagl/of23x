@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     chtMultiRegionAdaptiveSimpleFoam;
+application     chtMultiRegionSimpleFoam;
 
 startFrom       startTime;
 

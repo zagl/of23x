@@ -246,6 +246,17 @@ snappyHexMesh.add("locationInMesh", locationInMesh);
 config.add("snappyHexMesh", snappyHexMesh);
 
 
+/*---------------------------------------------------------------------------*\
+                                  changeDictionary
+\*---------------------------------------------------------------------------*/
+
+dictionary changeDictionary;
+
+bool radiationOn = configDict.lookup("radiation");
+word coupledWallType = radiationOn ? "coupledRadiationWall" : "coupledWall";
+changeDictionary.add("coupledWallType", coupledWallType);
+config.add("changeDictionary", changeDictionary);
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 os  << "config" << config;

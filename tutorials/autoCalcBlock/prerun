@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+template=$HOME/OpenFOAM/template/region
+
+
+for dir in 0/[^F]*; do
+    test -d $dir || continue
+    solid=$(basename $dir)
+    for folder in 0 constant system; do
+        for file in $template/$folder/SOLID/*; do
+            sed "s/SOLID/$solid/g" $file > $folder/$solid/$(basename $file)
+        done
+    done
+done
+
+for dir in 0/FLUID*; do
+    fluid=$(basename $dir)
+    for folder in 0 constant system; do
+        for file in $template/$folder/FLUID/*; do
+            sed "s/FLUID/$fluid/g" $file > $folder/$fluid/$(basename $file)
+        done
+    done
+done
+
+
+
+
+# ----------------------------------------------------------------- end-of-file

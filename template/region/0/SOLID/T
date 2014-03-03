@@ -22,22 +22,13 @@ internalField   uniform $:config.temperature.start;
 
 boundaryField
 {
-    emptyWall
+    ".*"
     {
         type        zeroGradient;
-        value       $internalField; 	
+        value       $internalField;
     }
-    radBaffle
-    {
-        type        compressible::turbulentTemperatureRadCoupledMixed;
-        Tnbr        T; 	
-        kappa       solidThermo; 	
-        kappaName   none; 	
-        value       $internalField; 
-        Qr          none; 	
-        QrNbr       Qr; 		
-    } 	
-    coupledBaffle
+
+    coupledWall
     {
         type        compressible::turbulentTemperatureCoupledBaffleMixed;
         Tnbr        T;
@@ -45,6 +36,19 @@ boundaryField
         kappaName   none;
         value       $internalField;
     }
+
+    coupledRadiationWall
+    {
+        type        compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr        T;
+        kappa       solidThermo;
+        kappaName   none;
+        Qr          none;
+        QrNbr       Qr;
+        value       $internalField; 
+    }
 }
+
+#remove config;
 
 // ************************************************************************* //

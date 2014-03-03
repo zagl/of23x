@@ -21,14 +21,13 @@ radiationModel  fvDOM;
 
 fvDOMCoeffs
 {
-    nPhi 3;
-    nTheta 4; 	
-    convergence 0.001; 	
-    maxIter 5; 	
+    nPhi 1;
+    nTheta 2;
+    convergence 0.001;
+    maxIter 5;
 } 
 
-// Number of flow iterations per radiation iteration
-solverFreq 3;
+solverFreq 100;
 
 absorptionEmissionModel none;
 

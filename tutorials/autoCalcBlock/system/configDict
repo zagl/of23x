@@ -22,6 +22,7 @@ config
     fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
     elementGradient 1.2;
     open            yes;
+    radiation       yes;
     gravity         ( 0 0 -9.81 );
     temperature
     {
