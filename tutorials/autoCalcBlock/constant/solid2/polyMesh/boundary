@@ -9,32 +9,34 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      configDict;
+    class       polyBoundaryMesh;
+    location    "constant/solid2/polyMesh";
+    object      boundary;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-config
-{
-    elementLength   0.002;
-    d               0.01;
-    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
-    elementGradient 1.2;
-    open            yes;
-    gravity         ( 0 0 -9.81 );
-    temperature
+2
+(
+    solid2_to_solid1
     {
-        start       293.15;
-        min         $start;
-        max         500;
+        type            mappedWall;
+        inGroups        1(wall);
+        nFaces          100;
+        startFace       2214;
+        sampleMode      nearestPatchFace;
+        sampleRegion    solid1;
+        samplePatch     solid1_to_solid2;
     }
-    inlet
+    solid2_to_FLUID1
     {
-        velocity        ( 0 0 0 );
-        temperature     293.15;
+        type            mappedWall;
+        inGroups        1(wall);
+        nFaces          500;
+        startFace       2314;
+        sampleMode      nearestPatchFace;
+        sampleRegion    FLUID1;
+        samplePatch     FLUID1_to_solid2;
     }
-    #include "variableConfigDict"
-}
+)
 
 // ************************************************************************* //

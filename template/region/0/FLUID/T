@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.2                                 |
+|  \\    /   O peration     | Version:  2.3.0                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -14,15 +14,36 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include        "./system/configDict"
+
 dimensions      [0 0 0 1 0 0 0];
 
-internalField   uniform 300;
+internalField   uniform $:config.temperature.start;
 
 boundaryField
 {
-    ".*"
+    emptyWall
     {
-        type            calculated;
+        type        zeroGradient;
+        value       $internalField; 	
+    }
+    radBaffle
+    {
+        type        compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr        T; 	
+        kappa       solidThermo; 	
+        kappaName   none; 	
+        value       $internalField; 
+        Qr          none; 	
+        QrNbr       Qr; 		
+    } 	
+    coupledBaffle
+    {
+        type        compressible::turbulentTemperatureCoupledBaffleMixed;
+        Tnbr        T;
+        kappa       solidThermo;
+        kappaName   none;
+        value       $internalField;
     }
 }
 

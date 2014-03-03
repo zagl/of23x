@@ -10,10 +10,30 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      configCode;
+    location    "constant";
+    object      radiationProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configDict";
-#include "./system/code/meshCodeDict";
-//#include "./system/code/splitCodeDict";
+radiation       on;
+
+radiationModel  fvDOM; 
+
+fvDOMCoeffs
+{
+    nPhi 3;
+    nTheta 4; 	
+    convergence 0.001; 	
+    maxIter 5; 	
+} 
+
+// Number of flow iterations per radiation iteration
+solverFreq 3;
+
+absorptionEmissionModel none;
+
+scatterModel    none;
+
+sootModel       none;
+
+// ************************************************************************* //

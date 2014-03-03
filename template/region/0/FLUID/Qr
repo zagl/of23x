@@ -9,11 +9,21 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      configCode;
+    class       volScalarField;
+    object      Qr;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configDict";
-#include "./system/code/meshCodeDict";
-//#include "./system/code/splitCodeDict";
+dimensions      [1 0 -3 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    ".*"
+    {
+        type            calculated;
+    }
+}
+
+// ************************************************************************* //

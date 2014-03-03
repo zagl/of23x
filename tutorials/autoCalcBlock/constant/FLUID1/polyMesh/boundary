@@ -1,0 +1,78 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/FLUID1/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+8
+(
+    minX
+    {
+        type            patch;
+        nFaces          169;
+        startFace       14988;
+    }
+    maxX
+    {
+        type            patch;
+        nFaces          169;
+        startFace       15157;
+    }
+    minY
+    {
+        type            patch;
+        nFaces          234;
+        startFace       15326;
+    }
+    maxY
+    {
+        type            patch;
+        nFaces          234;
+        startFace       15560;
+    }
+    minZ
+    {
+        type            patch;
+        nFaces          234;
+        startFace       15794;
+    }
+    maxZ
+    {
+        type            patch;
+        nFaces          234;
+        startFace       16028;
+    }
+    FLUID1_to_solid2
+    {
+        type            mappedWall;
+        inGroups        1(wall);
+        nFaces          500;
+        startFace       16262;
+        sampleMode      nearestPatchFace;
+        sampleRegion    solid2;
+        samplePatch     solid2_to_FLUID1;
+    }
+    FLUID1_to_solid1
+    {
+        type            mappedWall;
+        inGroups        1(wall);
+        nFaces          500;
+        startFace       16762;
+        sampleMode      nearestPatchFace;
+        sampleRegion    solid1;
+        samplePatch     solid1_to_FLUID1;
+    }
+)
+
+// ************************************************************************* //

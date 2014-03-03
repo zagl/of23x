@@ -1,0 +1,258 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      configCode;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "./system/configDict";
+
+#codeStream
+{
+
+    codeOptions
+    #{
+        -I$(LIB_SRC)/meshTools/lnInclude
+    #};
+
+    codeLibs
+    #{
+        -lmeshTools
+    #};
+
+    codeInclude
+    #{
+        #include "vectorField.H"
+        #include "IFstream.H"
+        #include "Tuple2.H"
+        #include "Time.H"
+        #include "argList.H"
+        #include "cellSet.H"
+    #};
+
+    localCode
+    #{
+        void addGeometry
+        (
+            const word& name,
+            const dictionary& dict,
+            dictionary& geometry
+        )
+        {
+            word fileType = dict.lookup("fileType");
+            word geomFileName = name + "." + fileType;
+            dictionary newDict;
+            newDict.add("name", name);
+            newDict.add("type", "triSurfaceMesh");
+            geometry.add(geomFileName, newDict);
+        }
+
+        label calculateRefinementLevel
+        (
+            const dictionary& dict,
+            const scalar& globalLength
+        )
+        {
+            scalar localLength = readScalar(dict.lookup("elementLength"));
+            label refinementLevel = int(log(globalLength/localLength) / log(2.0) + 0.5);
+            return refinementLevel;
+        }
+
+        dictionary newRefinement
+        (
+            const word& name,
+            const dictionary& dict,
+            const scalar& globalLength
+        )
+        {
+            label refinementLevel = calculateRefinementLevel(dict, globalLength);
+            labelList level(2, refinementLevel);
+
+            dictionary newDict;
+            newDict.add("level", level);
+            return newDict;
+        }
+    #};
+
+    code
+    #{
+
+
+/*---------------------------------------------------------------------------*\
+                                    blockMesh
+\*---------------------------------------------------------------------------*/
+dictionary configDict = dict.subDict("config");
+scalar globalLength  = readScalar(configDict.lookup("elementLength"));
+scalar elementGradient = readScalar(configDict.lookup("elementGradient"));
+vectorField boundingBox = configDict.lookup("boundingBox");
+vectorField distance = configDict.lookup("fluidDistance");
+
+vectorField l(4);
+vectorField divisions(3);
+vectorField edgeGradient(3);
+for ( int i=0; i<3; i++ )
+{
+    l[0][i] = boundingBox[0][i] - distance[0][i];
+    l[1][i] = boundingBox[0][i];
+    l[2][i] = boundingBox[1][i];
+    l[3][i] = boundingBox[1][i] + distance[1][i];
+
+    divisions[0][i] = int(log((distance[0][i])/globalLength
+        * (elementGradient - 1) + 1)/log(elementGradient ) + 0.5);
+
+    divisions[1][i] = int((boundingBox[1][i] - boundingBox[0][i])
+        / globalLength  + 0.5);
+
+    divisions[2][i] = int(log((distance[1][i])/globalLength 
+        * (elementGradient - 1) + 1)/log(elementGradient ) + 0.5);
+
+    edgeGradient[0][i] = 1/pow(elementGradient, divisions[0][i]-1);
+    edgeGradient[1][i] = 1;
+    edgeGradient[2][i] = pow(elementGradient, divisions[2][i]-1);
+}
+
+vectorField vertices;
+for ( int k=0; k<4; k++ )
+{
+    for ( int j=0; j<4; j++ )
+    {
+        for ( int i=0; i<4; i++ )
+        {
+            vector p(l[i].x(), l[j].y(), l[k].z());
+            vertices.append(p);
+        }
+    }
+}
+
+wordList blocks;
+for ( int k=0; k<3; k++ )
+{
+    for ( int j=0; j<3; j++ )
+    {
+        for ( int i=0; i<3; i++ )
+        {
+            labelList corners(8);
+            for ( int n=0; n<8; n++ )
+            {
+                label corner = i+((n+1)>>1&1) + 4*(j+(n>>1&1))
+                    + 16*(k+(n>>2));
+                corners[n] = corner;
+            }
+            vector division
+            (
+                divisions[i].x(),
+                divisions[j].y(),
+                divisions[k].z()
+            );
+            vector gradient
+            (
+                edgeGradient[i].x(),
+                edgeGradient[j].y(),
+                edgeGradient[k].z()
+            );
+
+            OStringStream block;
+            block << "hex " << corners << division 
+                << " simpleGrading " << gradient;
+            blocks.append(block.str());
+        }
+    }
+}
+
+dictionary blockMesh;
+blockMesh.add("blocks", blocks);
+blockMesh.add("vertices", vertices);
+
+dictionary config;
+config.add("blockMesh", blockMesh);
+
+
+/*---------------------------------------------------------------------------*\
+                                  snappyHexMesh
+\*---------------------------------------------------------------------------*/
+const dictionary& solidsDict = configDict.subDict("solids");
+const dictionary& blanksDict = configDict.subDict("blanks");
+const dictionary& bafflesDict = configDict.subDict("baffles");
+const dictionary& rotationsDict = configDict.subDict("rotations");
+const dictionary& refinementsDict = configDict.subDict("refinements");
+
+dictionary snappyHexMesh;
+dictionary geometry;
+dictionary refinementSurfaces;
+dictionary refinementRegions;
+
+forAllConstIter(dictionary, solidsDict, iter)
+{
+    const dictionary& dict = iter().dict();
+    word name = iter().keyword();
+    addGeometry(name, dict, geometry);
+    dictionary surface = newRefinement(name, dict, globalLength);
+    surface.add("cellZone", name);
+    surface.add("faceZone", name);
+    surface.add("cellZoneInside", "inside");
+    refinementSurfaces.add(name, surface);
+}
+
+forAllConstIter(dictionary, bafflesDict, iter)
+{
+    const dictionary& dict = iter().dict();
+    word name = iter().keyword();
+    addGeometry(name, dict, geometry);
+    dictionary surface = newRefinement(name, dict, globalLength);
+    surface.add("faceZone", name);
+    refinementSurfaces.add(name, surface);
+}
+
+dictionary allEmptyDict = rotationsDict + blanksDict;
+forAllConstIter(dictionary, allEmptyDict, iter)
+{
+    const dictionary& dict = iter().dict();
+    word name = iter().keyword();
+    addGeometry(name, dict, geometry);
+    dictionary surface = newRefinement(name, dict, globalLength);
+    refinementSurfaces.add(name, surface);
+}
+
+forAllConstIter(dictionary, refinementsDict, iter)
+{
+    const dictionary& dict = iter().dict();
+    word name = iter().keyword();
+    addGeometry(name, dict, geometry);
+    label refinementLevel = calculateRefinementLevel(dict, globalLength);
+    List<Tuple2<label, scalar> > levels(1);
+    levels[0] = Tuple2<label, scalar>(1.0, refinementLevel);
+
+    dictionary newDict;
+    newDict.add("levels", levels);
+    newDict.add("mode", "inside");
+    refinementRegions.add(name, newDict);
+}
+
+vector locationInMesh = boundingBox[0] + vector(0.00001, 0.00001, 0.00001);
+
+snappyHexMesh.add("geometry", geometry);
+snappyHexMesh.add("refinementSurfaces", refinementSurfaces);
+snappyHexMesh.add("refinementRegions", refinementRegions);
+snappyHexMesh.add("locationInMesh", locationInMesh);
+config.add("snappyHexMesh", snappyHexMesh);
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+os  << "config" << config;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+    #}; // End code
+
+}; // End codeStream
+

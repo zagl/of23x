@@ -10,10 +10,13 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      configCode;
+    object      topoSetDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configDict";
-#include "./system/code/meshCodeDict";
-//#include "./system/code/splitCodeDict";
+#include "./system/codeDict"
+
+actions $:config.topoSet.splitActions;
+
+// ************************************************************************* //
+

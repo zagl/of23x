@@ -10,10 +10,10 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      configCode;
+    object      turbulenceProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configDict";
-#include "./system/code/meshCodeDict";
-//#include "./system/code/splitCodeDict";
+simulationType  laminar;
+
+// ************************************************************************* //

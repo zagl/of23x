@@ -27,14 +27,14 @@ solids
         power           0;
         fileType        stl;
     }
-//    solid2
-//    {
-//        conductivity    210;
-//        elementLength   0.001;
-//        emissivity      0.8;
-//        power           0;
-//        fileType        stl;
-//    }
+    solid2
+    {
+        conductivity    210;
+        elementLength   0.001;
+        emissivity      0.8;
+        power           0;
+        fileType        stl;
+    }
 }
 
 blanks
@@ -68,11 +68,11 @@ rotations
 
 refinements
 {
-    solid2
-    {
-        elementLength   0.001;
-        fileType        stl;
-    }
+//    solid2
+//    {
+//        elementLength   0.001;
+//        fileType        stl;
+//    }
 }
 
 fluids

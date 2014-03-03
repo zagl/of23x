@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     argList::noParallel();
 //    argList::validArgs.append("surfaceFile");
     #include "setRootCase.H"
-    #include "createTime.H"     
+    #include "createTime.H"
     runTime.functionObjects().off();
 
     const word dictName("variableConfigDict");

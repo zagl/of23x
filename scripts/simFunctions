@@ -28,15 +28,15 @@ function setCellRegions
   cellsRegionExists=false
   batchfile=batch.setSet
   
-  nCells=$(zcat -f constant/polyMesh/owner.gz | 
-           sed -n 's/^.*nCells:\([0-9]*\).*$/\1/p')
+  nCells=$(zgrep -m1 nCells constant/polyMesh/owner* | 
+            sed -n 's/^.*nCells: *\([0-9]*\).*$/\1/p')
   minCells=$(( $nCells / 50 ))
   
   echo "cellSet cells new" > $batchfile
   for file in constant/polyMesh/sets/region*
   do
     name=$(basename $file .gz)
-    cells=$(zcat -f $file | egrep -m1 '^[0-9]+$')
+    cells=$(zgrep -E -m1 '^[0-9]+$' $file)
     
     if [ $cells -ge $minCells ]
     then

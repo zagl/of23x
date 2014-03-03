@@ -10,10 +10,37 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      configCode;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/configDict";
-#include "./system/code/meshCodeDict";
-//#include "./system/code/splitCodeDict";
+#include        "./system/configDict"
+
+temperatureLimit
+{
+    active          on;
+    selectionMode   all;
+    temperatureLimitsConstraintCoeffs
+    {
+        Tmin            $:config.temperature.min;
+        Tmax            $:config.temperature.max;
+    }
+    type            temperatureLimitsConstraint;
+}
+
+heatSource
+{
+    active          #calc "bool($:config.solids.SOLID.power)";
+    scalarSemiImplicitSourceCoeffs
+    {
+        injectionRateSuSp
+        {
+            h           ( $:config.solids.SOLID.power 0 );
+        }
+        volumeMode absolute;
+    }
+    selectionMode   all;
+    type            scalarSemiImplicitSource;
+}
+
