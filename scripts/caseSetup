@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#usage: caseSetup [OPTION] [DATEI]
+
+#Optionen:
+# -t  --to-meter    transform mm to m
+# falls dateien angegeben, werden diese verwendet. 
+# falls nicht werden alle vorhanden triSurface Dateien kopiert
+# (*.stl, *.vtk, *.obj)
+
+#stl in ordner
+#erstelle case struktur im ordner falls nicht vorhanden
+#kopiere stl in trisurface. falls option -tomm angegeben nutze surfacetransform
+#führe configsetup aus
+
+#soll auch funktionieren, wenn casestruktur mit stls vorhanden ist
+#stls im basisordner überschreiben dann alte stls
+#casesetup soll neu ausgeführt werden, falls sich boundingbox geändert hat.
+#neue files sollen ergänzt werden
+
+template=$HOME/OpenFOAM/template/base
+
+for dir in 0 constant/{,polyMesh,triSurface} system
+do
+    test -e $dir || mkdir $dir
+done
+
+for file in constant/{regionProperties,polyMesh/blockMeshDict} \
+            system/{controlDict,snappyHexMeshDict}
+do
+    test -e $file || cp $template/$file $file
+done

@@ -37,50 +37,11 @@ FoamFile
         #include "Time.H"
         #include "argList.H"
         #include "cellSet.H"
+        #include "HashTable.H"
     #};
 
     localCode
     #{
-        void addGeometry
-        (
-            const word& name,
-            const dictionary& dict,
-            dictionary& geometry
-        )
-        {
-            word fileType = dict.lookup("fileType");
-            word geomFileName = name + "." + fileType;
-            dictionary newDict;
-            newDict.add("name", name);
-            newDict.add("type", "triSurfaceMesh");
-            geometry.add(geomFileName, newDict);
-        }
-
-        label calculateRefinementLevel
-        (
-            const dictionary& dict,
-            const scalar& globalLength
-        )
-        {
-            scalar localLength = readScalar(dict.lookup("elementLength"));
-            label refinementLevel = int(log(globalLength/localLength) / log(2.0) + 0.5);
-            return refinementLevel;
-        }
-
-        dictionary newRefinement
-        (
-            const word& name,
-            const dictionary& dict,
-            const scalar& globalLength
-        )
-        {
-            label refinementLevel = calculateRefinementLevel(dict, globalLength);
-            labelList level(2, refinementLevel);
-
-            dictionary newDict;
-            newDict.add("level", level);
-            return newDict;
-        }
     #};
 
     code
@@ -179,62 +140,69 @@ config.add("blockMesh", blockMesh);
 /*---------------------------------------------------------------------------*\
                                   snappyHexMesh
 \*---------------------------------------------------------------------------*/
-const dictionary& solidsDict = configDict.subDict("solids");
-const dictionary& blanksDict = configDict.subDict("blanks");
-const dictionary& bafflesDict = configDict.subDict("baffles");
-const dictionary& rotationsDict = configDict.subDict("rotations");
-const dictionary& refinementsDict = configDict.subDict("refinements");
 
 dictionary snappyHexMesh;
 dictionary geometry;
 dictionary refinementSurfaces;
 dictionary refinementRegions;
 
-forAllConstIter(dictionary, solidsDict, iter)
+fileName constantDir("constant");
+fileName triSurfaceDir(constantDir/"triSurface");
+fileNameList triSurfaces = readDir(triSurfaceDir);
+HashTable<word> surfFileNames;
+forAll( triSurfaces, surfI )
 {
-    const dictionary& dict = iter().dict();
-    word name = iter().keyword();
-    addGeometry(name, dict, geometry);
-    dictionary surface = newRefinement(name, dict, globalLength);
-    surface.add("cellZone", name);
-    surface.add("faceZone", name);
-    surface.add("cellZoneInside", "inside");
-    refinementSurfaces.add(name, surface);
+    surfFileNames.insert( triSurfaces[surfI].lessExt(), triSurfaces[surfI] );
 }
 
-forAllConstIter(dictionary, bafflesDict, iter)
-{
-    const dictionary& dict = iter().dict();
-    word name = iter().keyword();
-    addGeometry(name, dict, geometry);
-    dictionary surface = newRefinement(name, dict, globalLength);
-    surface.add("faceZone", name);
-    refinementSurfaces.add(name, surface);
-}
+wordList geomTypes
+(
+    IStringStream("(solids blanks baffles rotations refinements)")()
+);
 
-dictionary allEmptyDict = rotationsDict + blanksDict;
-forAllConstIter(dictionary, allEmptyDict, iter)
+forAll( geomTypes, i )
 {
-    const dictionary& dict = iter().dict();
-    word name = iter().keyword();
-    addGeometry(name, dict, geometry);
-    dictionary surface = newRefinement(name, dict, globalLength);
-    refinementSurfaces.add(name, surface);
-}
-
-forAllConstIter(dictionary, refinementsDict, iter)
-{
-    const dictionary& dict = iter().dict();
-    word name = iter().keyword();
-    addGeometry(name, dict, geometry);
-    label refinementLevel = calculateRefinementLevel(dict, globalLength);
-    List<Tuple2<label, scalar> > levels(1);
-    levels[0] = Tuple2<label, scalar>(1.0, refinementLevel);
-
-    dictionary newDict;
-    newDict.add("levels", levels);
-    newDict.add("mode", "inside");
-    refinementRegions.add(name, newDict);
+    word geomType = geomTypes[i];
+    forAllConstIter(dictionary, configDict.subDict(geomType), iter)
+    {
+        const dictionary& dict = iter().dict();
+        word name = iter().keyword();
+        
+        dictionary geomDict;
+        geomDict.add("name", name);
+        geomDict.add("type", "triSurfaceMesh");
+        geometry.add(surfFileNames[name], geomDict);
+        
+        scalar localLength = readScalar(dict.lookup("elementLength"));
+        label refinementLevel = int(log(globalLength/localLength) / log(2.0) + 0.5);
+        
+        if ( geomType == "refinements" )
+        {
+            dictionary region;
+            List<Tuple2<label, scalar> > levels(1);
+            levels[0] = Tuple2<label, scalar>(1.0, refinementLevel);
+            region.add("levels", levels);
+            region.add("mode", "inside");
+            refinementRegions.add(name, region);
+        }
+        else
+        {
+            dictionary surface;
+            labelList level(2, refinementLevel);
+            surface.add("level", level);
+            if ( geomType == "solids" )
+            {
+                surface.add("cellZone", name);
+                surface.add("faceZone", name);
+                surface.add("cellZoneInside", "inside");
+            }
+            else if ( geomType == "baffles" )
+            {
+                surface.add("faceZone", name);
+            }
+            refinementSurfaces.add(name, surface);
+        }
+    }
 }
 
 vector locationInMesh = boundingBox[0] + vector(0.00001, 0.00001, 0.00001);
@@ -247,7 +215,7 @@ config.add("snappyHexMesh", snappyHexMesh);
 
 
 /*---------------------------------------------------------------------------*\
-                                  changeDictionary
+                               changeDictionary
 \*---------------------------------------------------------------------------*/
 
 dictionary changeDictionary;
@@ -256,6 +224,38 @@ bool radiationOn = configDict.lookup("radiation");
 word coupledWallType = radiationOn ? "coupledRadiationWall" : "coupledWall";
 changeDictionary.add("coupledWallType", coupledWallType);
 config.add("changeDictionary", changeDictionary);
+
+/*---------------------------------------------------------------------------*\
+                                   fvOptions
+\*---------------------------------------------------------------------------*/
+
+dictionary fvOptions;
+const dictionary& rotationsDict = configDict.subDict("rotations");
+
+forAllConstIter(dictionary, rotationsDict, iter)
+{
+    const dictionary& dict = iter().dict();
+    word name = iter().keyword();
+    scalar rpm = readScalar(dict.lookup("rpm"));
+    vectorField axis = dict.lookup("axis");
+    
+    dictionary coeffs;
+    coeffs.add("origin", axis[0]);
+    coeffs.add("axis", axis[1] - axis[0]);
+    coeffs.add("omega", constant::mathematical::twoPi * rpm / 60);
+    
+    dictionary option;
+    option.add("active", "on");
+    option.add("selectionMode", "cellZone");
+    option.add("cellZone", name);
+    option.add("type", "MRFSource");
+    option.add("MRFSourceCoeffs", coeffs);
+    
+    fvOptions.add(name, option);
+}
+
+config.add("fvOptions", fvOptions);
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

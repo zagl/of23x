@@ -25,15 +25,14 @@ solids
         elementLength   0.001;
         emissivity      0.8;
         power           0;
-        fileType        stl;
     }
+    
     solid2
     {
         conductivity    210;
         elementLength   0.001;
         emissivity      0.8;
         power           0;
-        fileType        stl;
     }
 }
 
@@ -61,23 +60,34 @@ rotations
 {
 //    ROT1
 //    {
-//        elementLength   0.001;
-//        fileType        stl;
+//        elementLength   0.0005;
+//        radius          0.018;
+//        rpm             4500.0;
+//        axis
+//        (
+//            (0.058659 0.006001 0.0495)
+//            (0.058659 -0.00912 0.0495)
+//        );
 //    }
 }
 
 refinements
 {
-//    solid2
+//    refinement
 //    {
 //        elementLength   0.001;
 //        fileType        stl;
 //    }
 }
 
-fluids
-{
-}
+//fluids
+//{
+//    FLUID1
+//    {
+//        rotations       ();
+//        baffles         ();
+//    }
+//}
 
 
 // ************************************************************************* //

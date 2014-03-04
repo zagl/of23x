@@ -9,33 +9,13 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      configDict;
+    class       regIOobject;
+    location    "constant/solid2/polyMesh";
+    object      pointZones;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-config
-{
-    elementLength   0.001;
-    d               0.01;
-    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
-    elementGradient 1.2;
-    open            yes;
-    radiation       yes;
-    gravity         ( 0 0 -9.81 );
-    temperature
-    {
-        start       293.15;
-        min         $start;
-        max         500;
-    }
-    inlet
-    {
-        velocity        ( 0 0 0 );
-        temperature     293.15;
-    }
-    #include "variableConfigDict"
-}
+0
+()
 
 // ************************************************************************* //

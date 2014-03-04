@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.x                                 |
+|  \\    /   O peration     | Version:  2.3.0                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,32 +10,29 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      configDict;
+    location    "constant";
+    object      radiationProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-config
+radiation       on;
+
+radiationModel  fvDOM; 
+
+fvDOMCoeffs
 {
-    elementLength   0.001;
-    d               0.01;
-    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
-    elementGradient 1.2;
-    open            yes;
-    radiation       yes;
-    gravity         ( 0 0 -9.81 );
-    temperature
-    {
-        start       293.15;
-        min         $start;
-        max         500;
-    }
-    inlet
-    {
-        velocity        ( 0 0 0 );
-        temperature     293.15;
-    }
-    #include "variableConfigDict"
-}
+    nPhi 1;
+    nTheta 2;
+    convergence 0.001;
+    maxIter 5;
+} 
+
+solverFreq 100;
+
+absorptionEmissionModel none;
+
+scatterModel    none;
+
+sootModel       none;
 
 // ************************************************************************* //

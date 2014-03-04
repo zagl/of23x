@@ -15,20 +15,33 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "./system/codeDict"
+#include        "./system/configDict"
 
 temperatureLimit
 {
     active          on;
     selectionMode   all;
-    type            temperatureLimitsConstraint;
     temperatureLimitsConstraintCoeffs
     {
         Tmin            $:config.temperature.min;
         Tmax            $:config.temperature.max;
     }
+    type            temperatureLimitsConstraint;
 }
 
-$:config.fvOptions
+heatSource
+{
+    active          #calc "bool($:config.solids.solid2.power)";
+    scalarSemiImplicitSourceCoeffs
+    {
+        injectionRateSuSp
+        {
+            h           ( $:config.solids.solid2.power 0 );
+        }
+        volumeMode absolute;
+    }
+    selectionMode   all;
+    type            scalarSemiImplicitSource;
+}
 
 #remove config;
