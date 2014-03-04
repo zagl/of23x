@@ -1,32 +1,87 @@
 #!/bin/bash
+# Skript: caseSetup
 
-#usage: caseSetup [OPTION] [DATEI]
+# Globale Variablen
+SCRIPTNAME=$(basename $0 .sh)
+EXIT_SUCCESS=0
+EXIT_FAILURE=1
+EXIT_ERROR=2
+EXIT_BUG=10
 
-#Optionen:
-# -t  --to-meter    transform mm to m
-# falls dateien angegeben, werden diese verwendet. 
-# falls nicht werden alle vorhanden triSurface Dateien kopiert
-# (*.stl, *.vtk, *.obj)
+# Variablen für Optionsschalter hier mit Default-Werten vorbelegen
+VERBOSE=n
+TOMM=false
+OPTFILE=""
 
-#stl in ordner
-#erstelle case struktur im ordner falls nicht vorhanden
-#kopiere stl in trisurface. falls option -tomm angegeben nutze surfacetransform
-#führe configsetup aus
+if [ ! $FOAM_APP ] ; then
+    echo "OpenFOAM environment not found." >&2
+    echo "" >&2
+    exit $EXIT_FAILURE
+fi
 
-#soll auch funktionieren, wenn casestruktur mit stls vorhanden ist
-#stls im basisordner überschreiben dann alte stls
-#casesetup soll neu ausgeführt werden, falls sich boundingbox geändert hat.
-#neue files sollen ergänzt werden
+function usage {
+    echo "" >&2
+    echo "Usage: $SCRIPTNAME [-h] [-m]" >&2
+    echo "options:" >&2
+    echo "   -h   print this usage" >&2
+    echo "   -m   convert to mm" >&2
+    echo "" >&2
+    [[ $# -eq 1 ]] && exit $1 || exit $EXIT_FAILURE
+}
+
+while getopts ':hm' OPTION ; do
+    case $OPTION in
+    m) TOMM=true
+    ;;
+    h) usage $EXIT_SUCCESS
+    ;;
+    \?) echo "Unbekannte Option \"-$OPTARG\"." >&2
+    usage $EXIT_ERROR
+    ;;
+    :) echo "Option \"-$OPTARG\" benötigt ein Argument." >&2
+    usage $EXIT_ERROR
+    ;;
+    *) echo "Dies kann eigentlich gar nicht passiert sein..." >&2
+    usage $EXIT_BUG
+    ;;
+    esac
+done
 
 template=$HOME/OpenFOAM/template/base
 
-for dir in 0 constant/{,polyMesh,triSurface} system
+test -e 0 || mkdir 0
+test -e log || mkdir log
+
+for dir in constant system
 do
-    test -e $dir || mkdir $dir
+    if [ ! -d $dir ] ; then
+        echo "Create new $dir directory ..."
+        cp -r $template/$dir $dir
+    fi
 done
 
-for file in constant/{regionProperties,polyMesh/blockMeshDict} \
-            system/{controlDict,snappyHexMeshDict}
+for file in *.{stl,obj,vtk}{,.gz}
 do
-    test -e $file || cp $template/$file $file
+    test -e $file || continue
+    newFile=constant/triSurface/${file%%.*}.obj
+    if $TOMM; then
+        surfaceTransformPoints -scale '(0.001 0.001 0.001)' \
+            $file $newFile > log/surfaceTransformPoints.$file.logfile
+    else
+        surfaceConvert $file $newFile > log/surfaceConvert.$file.logfile
+    fi
+
+    if [ -e $newFile ]; then
+        rm $file
+        gzip $newFile
+    else
+        echo "" >&2
+        echo "Conversion of $file failed." >&2
+        echo "" >&2
+        exit $EXIT_ERROR
+    fi
 done
+
+configSetup > log/configSetup.logfile
+
+exit $EXIT_SUCCESS

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     runTime.functionObjects().off();
 
-    const word dictName("variableConfigDict");
+    const word dictName("geometryDict");
     IOdictionary configDict
     (
         IOobject

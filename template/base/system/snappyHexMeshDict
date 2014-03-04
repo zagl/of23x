@@ -9,15 +9,19 @@ FoamFile
  object autoHexMeshDict; 	
 }
 
+
 castellatedMesh true;
 
 snap true; 	
 
 addLayers false; 	
 
+#include "./system/codeDict"
+
 geometry
 {
-} 	
+    $:config.snappyHexMesh.geometry
+}
 
 castellatedMeshControls
 {
@@ -30,25 +34,27 @@ castellatedMeshControls
     ); 	
   refinementSurfaces
   {
+    $:config.snappyHexMesh.refinementSurfaces
   } 	
   resolveFeatureAngle 30; 	
   refinementRegions
   {
+    $:config.snappyHexMesh.refinementRegions
   } 	
-  locationInMesh (0.01 0.01 0.01); 	
+  locationInMesh $:config.snappyHexMesh.locationInMesh;
   allowFreeStandingZoneFaces true; 	
 } 	
 
 snapControls
 {
-  nSmoothPatch 3;
+  nSmoothPatch 1;
   tolerance 1.0; 	
-  nSolveIter 60; 	
+  nSolveIter 30; 	
   nRelaxIter 5; 	
   nFeatureSnapIter 5; 	
-  implicitFeatureSnap false; 	
-  explicitFeatureSnap true; 	
-  multiRegionFeatureSnap false; 	
+  implicitFeatureSnap true; 	
+  explicitFeatureSnap false; 	
+  multiRegionFeatureSnap true; 	
 } 	
 
 addLayersControls
@@ -79,9 +85,9 @@ addLayersControls
 
 meshQualityControls
 {
-  maxNonOrtho 100;
-  maxBoundarySkewness 40; 	
-  maxInternalSkewness 8; 	
+  maxNonOrtho 65;
+  maxBoundarySkewness 20; 	
+  maxInternalSkewness 4; 	
   maxConcave 80; 	
   minVol 0; 	
   minTetQuality 1e-30; 	
