@@ -6,15 +6,17 @@ function mergeCellRegions
 ###############################################################################
 {
   rm -f merge.setSet
-  for file in constant/polyMesh/sets/region*
+  glob="constant/polyMesh/sets/region*"
+  regionSets=$(echo $glob)
+  test "$glob" = "$regionSets" && exit 0
+  
+  for file in $regionSets
   do
     region=$(basename $file .gz)
-
-    for file in ./constant/triSurface/*.{stl,obj,vtk}
+    for set in $(ls constant/polyMesh/sets/)
     do
-      solid=${file##*/}
-      solid=${solid%.*}
-      test ! "$solid" == '*' && 
+      echo "$regionSets" | grep -q $set && continue
+      solid=${set%.*}
         echo "cellSet $region delete zoneToCell $solid" >> merge.setSet
     done
   done
@@ -44,19 +46,6 @@ function setCellRegions
       fluidNr=$(expr $fluidNr + 1)
       echo "cellSet $fluid new cellToCell $name" >> $batchfile
       echo "cellZoneSet $fluid new setToCellZone $fluid" >> $batchfile
-      
-#      if test ! -e system/$fluid
-#      then 
-#        mkdir system/$fluid
-#        cd system/$fluid
-#        ln -s ../FLUID/* ./
-#        cd -
-#        
-#        mkdir constant/$fluid
-#        cd constant/$fluid
-#        ln -s ../FLUID/* ./
-#        cd -
-#      fi
     elif [ $cells -ne 0 ]
     then
       echo "cellSet cells add cellToCell $name" >> $batchfile
@@ -67,16 +56,24 @@ function setCellRegions
   done
   echo "cellZoneSet cells new setToCellZone cells" >> $batchfile
 
+
   if $cellsRegionExists
   then
-    for solid in ./constant/triSurface/*.stl
+    glob="constant/polyMesh/sets/region*"
+    regionSets=$(echo $glob)
+    test "$glob" = "$regionSets" && exit 0
+  
+    for set in $(ls constant/polyMesh/sets/)
     do
-      solid=$(basename $solid .stl)
-      echo "cellSet $solid new zoneToCell $solid" >> $batchfile
-      echo "cellSet $solid delete zoneToCell cells" >> $batchfile
-      echo "cellZoneSet $solid new setToCellZone $solid" >> $batchfile
+      echo "$regionSets" | grep -q $set && continue
+      solid=${set%.*}
+      echo "cellSet cells delete zoneToCell $solid" >> $batchfile
     done
+    echo "cellSet cells invert" >> $batchfile
+  else
+    echo "cellSet cells remove" >> $batchfile
   fi
+  
 }
 
 
@@ -84,15 +81,17 @@ function setCellRegions
 #function splitRegions
 ###############################################################################
 #{
-  splitMeshRegions -cellZones -makeCellZones -overwrite > log.splitMeshRegions.first
+  splitMeshRegions -cellZones -makeCellZones -overwrite > log/splitMeshRegions.first.logfile
 
   mergeCellRegions
-  setSet -batch merge.setSet > log.setSet.merge
+  setSet -batch merge.setSet > log/setSet.merge.logfile
 
   setCellRegions
-  setSet -batch batch.setSet > log.setSet.regions
+  setSet -batch batch.setSet > log/setSet.regions.logfile
 
-  splitMeshRegions -cellZonesOnly -overwrite > log.splitMeshRegions.final
+  subsetMesh cells -overwrite
+  
+  splitMeshRegions -cellZonesOnly -overwrite > log/splitMeshRegions.final.logfile
 
   paraFoam -touchAll
 #}

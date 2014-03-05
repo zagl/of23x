@@ -1,87 +1,45 @@
 #!/bin/bash
-# Skript: caseSetup
 
-# Globale Variablen
-SCRIPTNAME=$(basename $0 .sh)
-EXIT_SUCCESS=0
-EXIT_FAILURE=1
-EXIT_ERROR=2
-EXIT_BUG=10
 
-# Variablen für Optionsschalter hier mit Default-Werten vorbelegen
-VERBOSE=n
-TOMM=false
-OPTFILE=""
+template=$HOME/OpenFOAM/template/region
 
-if [ ! $FOAM_APP ] ; then
-    echo "OpenFOAM environment not found." >&2
-    echo "" >&2
-    exit $EXIT_FAILURE
-fi
 
-function usage {
-    echo "" >&2
-    echo "Usage: $SCRIPTNAME [-h] [-m]" >&2
-    echo "options:" >&2
-    echo "   -h   print this usage" >&2
-    echo "   -m   convert to mm" >&2
-    echo "" >&2
-    [[ $# -eq 1 ]] && exit $1 || exit $EXIT_FAILURE
-}
+#for dir in 0/[^F]*; do
+#    test -d $dir || continue
+#    solid=$(basename $dir)
+#    echo "Setup region $solid"    
+#    for folder in 0 constant system; do
+#        for file in $template/$folder/SOLID/*; do
+#            sed "s/SOLID/$solid/g" $file > $folder/$solid/$(basename $file)
+#        done
+#    done
+#    changeDictionary -enableFunctionEntries -region $solid
+#done
 
-while getopts ':hm' OPTION ; do
-    case $OPTION in
-    m) TOMM=true
-    ;;
-    h) usage $EXIT_SUCCESS
-    ;;
-    \?) echo "Unbekannte Option \"-$OPTARG\"." >&2
-    usage $EXIT_ERROR
-    ;;
-    :) echo "Option \"-$OPTARG\" benötigt ein Argument." >&2
-    usage $EXIT_ERROR
-    ;;
-    *) echo "Dies kann eigentlich gar nicht passiert sein..." >&2
-    usage $EXIT_BUG
-    ;;
-    esac
+#for dir in 0/FLUID*; do
+#    fluid=$(basename $dir)
+#    echo "Setup region $fluid"  
+#    for folder in 0 constant system; do
+#        for file in $template/$folder/FLUID/*; do
+#            sed "s/FLUID/$fluid/g" $file > $folder/$fluid/$(basename $file)
+#        done
+#    done
+#    changeDictionary -enableFunctionEntries -region $solid
+#done
+
+for dir in 0/*; do
+    test -d $dir || continue
+    region=$(basename $dir)
+    echo "Setup region $region"
+    TYPE=$(test "${region::-1}" = "FLUID" && echo FLUID || echo SOLID)
+    for folder in 0 constant system; do
+        for file in $template/$folder/$TYPE/*; do
+            sed "s/$TYPE/$region/g" $file > $folder/$region/$(basename $file)
+        done
+    done
+    changeDictionary -enableFunctionEntries -region $region \
+        > log/changeDictionary.$region.logfile
 done
 
-template=$HOME/OpenFOAM/template/base
 
-test -e 0 || mkdir 0
-test -e log || mkdir log
-
-for dir in constant system
-do
-    if [ ! -d $dir ] ; then
-        echo "Create new $dir directory ..."
-        cp -r $template/$dir $dir
-    fi
-done
-
-for file in *.{stl,obj,vtk}{,.gz}
-do
-    test -e $file || continue
-    newFile=constant/triSurface/${file%%.*}.obj
-    if $TOMM; then
-        surfaceTransformPoints -scale '(0.001 0.001 0.001)' \
-            $file $newFile > log/surfaceTransformPoints.$file.logfile
-    else
-        surfaceConvert $file $newFile > log/surfaceConvert.$file.logfile
-    fi
-
-    if [ -e $newFile ]; then
-        rm $file
-        gzip $newFile
-    else
-        echo "" >&2
-        echo "Conversion of $file failed." >&2
-        echo "" >&2
-        exit $EXIT_ERROR
-    fi
-done
-
-configSetup > log/configSetup.logfile
-
-exit $EXIT_SUCCESS
+# ----------------------------------------------------------------- end-of-file

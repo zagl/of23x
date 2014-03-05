@@ -94,66 +94,44 @@ int main(int argc, char *argv[])
         boundBox bound(surf.points());
         boundPoints.append(bound.min());
         boundPoints.append(bound.max());
+        
+        dictionary dict;
+        dict.add("elementLength", 0.001);
+        dictionary& typeDict = configDict.subDict("solids");
 
         if ( regExp("ROT.*").match(geom) )
         {
-            dictionary& typeDict = configDict.subDict("rotations");
-            if ( ! typeDict.found(geom) )
-            {
-                dictionary dict;
-                dict.add("elementLength", 0.001);
-                dict.add("radius", 0.018);
-                dict.add("rpm", 4500.0);
-                vectorField axis(2, vector(0, 0, 0));
-                axis[1] = vector(1, 0, 0);
-                dict.add("axis", axis);
-                typeDict.add(geom, dict);
-            }
+            typeDict = configDict.subDict("rotations");
+            dict.add("radius", 0.018);
+            dict.add("rpm", 4500.0);
+            vectorField axis(2, vector(0, 0, 0));
+            axis[1] = vector(1, 0, 0);
+            dict.add("axis", axis);
         }
         else if ( regExp("FINE.*").match(geom) )
         {
-            dictionary& typeDict = configDict.subDict("refinements");
-            if ( ! typeDict.found(geom) )
-            {
-                dictionary dict;
-                dict.add("elementLength", 0.001);
-                typeDict.add(geom, dict);
-            }
+            typeDict = configDict.subDict("refinements");
         }
         else if ( regExp("__.*").match(geom) )
         {
-            dictionary& typeDict = configDict.subDict("baffles");
-            if ( ! typeDict.found(geom) )
-            {
-                dictionary dict;
-                dict.add("elementLength", 0.001);
-                dict.add("thickness", 0.001);
-                dict.add("conductivity", 1.0);
-                typeDict.add(geom, dict);
-            }
+            typeDict = configDict.subDict("baffles");
+            dict.add("conductivity", 1.0);
+            dict.add("thickness", 0.001);
         }
         else if ( regExp("_.*").match(geom) )
         {
-            dictionary& typeDict = configDict.subDict("blanks");
-            if ( ! typeDict.found(geom) )
-            {
-                dictionary dict;
-                dict.add("elementLength", 0.001);
-                typeDict.add(geom, dict);
-            }
+            typeDict = configDict.subDict("blanks");
         }
         else
         {
-            dictionary& typeDict = configDict.subDict("solids");
-            if ( ! typeDict.found(geom) )
-            {
-                dictionary dict;
-                dict.add("elementLength", 0.001);
-                dict.add("conductivity", 210);
-                dict.add("emissivity", 0.8);
-                dict.add("power", 0);
-                typeDict.add(geom, dict);
-            }
+            dict.add("conductivity", 210);
+            dict.add("emissivity", 0.8);
+            dict.add("power", 0);
+        }
+        
+        if ( ! typeDict.found(geom) )
+        {
+            typeDict.add(geom, dict);
         }
     }
 
@@ -177,15 +155,11 @@ int main(int argc, char *argv[])
                 Info<< "Remove " << geom << " from dictionary" << nl;
             }
         }
-
-
-
     }
 
+    configDict.set("boundingBox", boundingBoxPoints);
 
     Info<< nl << "Write " << dictName << " ..." << endl;
-
-    configDict.set("boundingBox", boundingBoxPoints);
 
     configDict.regIOobject::write();
 
