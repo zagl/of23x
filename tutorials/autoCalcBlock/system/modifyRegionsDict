@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Remove regions with a small number of cells.
+// Specify minimum region size by number of cells or
+// relative in relation to overall mesh size.
+relativeSize        yes;
+minRegionSize       0.02;
+
+regions
+{
+    topAir
+    {
+        selectionMode   point;
+        selectionPoints ( ( 1 1 1 ) );
+        mergeRegions    true;
+        remove          false;
+    }
+
+    bottomAir
+    {
+        selectionMode   residual;
+        mergeRegions    true;
+        remove          false;
+    }
+}
+
+// ************************************************************************* //
+

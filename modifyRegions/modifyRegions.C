@@ -54,6 +54,12 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     timeSelector::addOptions(true, false);
+    #include "addDictOption.H"
+    argList::addBoolOption
+    (
+        "merge",
+        "Merge new regions into one single region."
+    );
 
     #include "setRootCase.H"
     #include "createTime.H"
@@ -62,6 +68,22 @@ int main(int argc, char *argv[])
 
     #include "createNamedPolyMesh.H"
 
+    const word dictName("modifyRegionsDict");
+    #include "setSystemMeshDictionaryIO.H"
+    IOdictionary modifyRegionsDict(dictIO);
+
+    const bool relativeSize = readBool(modifyRegionsDict.lookup("relativeSize"));
+    label minRegionSize;
+
+    if (relativeSize)
+    {
+        const scalar ratio = readScalar(modifyRegionsDict.lookup("minRegionSize"));
+        minRegionSize = int(mesh.nCells()*ratio + 0.5);
+    }
+    else
+    {
+        minRegionSize = readLabel(modifyRegionsDict.lookup("minRegionSize"));
+    }
 
 
     forAll(timeDirs, timeI)
@@ -122,7 +144,64 @@ int main(int argc, char *argv[])
                 currentSet().write();
             }
         }
+        forAll( regions, i )
+        {
+            word region = regions[i];
+            autoPtr<topoSet> currentSet;
+            const word setType = "cellSet";
+            currentSet = topoSet::New
+            (
+                setType,
+                mesh,
+                region,
+                IOobject::MUST_READ
+            );
+
+            label regionSize = returnReduce(currentSet().size(), sumOp<label>());
+
+            Info<< "Read set " << currentSet().type() << " "
+                << region<< " with size "
+                << returnReduce(currentSet().size(), sumOp<label>())
+                << endl
+                << currentSet().size()
+                << endl;
+
+            autoPtr<topoSet> removeSet;
+            removeSet = topoSet::New
+            (
+                setType,
+                mesh,
+                "remove",
+                10000
+            );
+
+            if ( regionSize > minRegionSize )
+            {
+            }
+            else if ( regionSize != 0 )
+            {
+                word sourceType = "cellToCell";
+                dictionary sourceInfo;
+                sourceInfo.add("set", region);
+                topoSetSource::setAction action = topoSetSource::ADD;
+
+                Info<< " Applying source " << sourceType << endl;
+                autoPtr<topoSetSource> source = topoSetSource::New
+                (
+                    sourceType,
+                    mesh,
+                    sourceInfo
+                );
+
+                source().applyToSet(action, removeSet());
+                removeSet().write();
+            }
+        }
     }
+
+
+
+
 
 
 
