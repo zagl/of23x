@@ -14,29 +14,32 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Remove regions with a small number of cells.
-// Specify minimum region size by number of cells or
+// All undefined regions are added to this cellZone.
+defaultCellZone     bottomAir;
+
+// Merge regions into a single cellZone or create separate cellZones.
+// Separate cellZones are named by defaultCellZone plus numerical suffix.
+mergeRegions        true;
+
+// Put regions with a small number of cells into a separate cellZone.
+cavitiesCellZone    cavities;
+
+// Invert cavitiesCellZone for usage with subSetMesh.
+invertCavities      true;
+
+// Specify size threshold by number of cells or
 // relative in relation to overall mesh size.
 relativeSize        yes;
 minRegionSize       0.02;
 
-regions
-{
-    topAir
-    {
-        selectionMode   point;
-        selectionPoints ( ( 1 1 1 ) );
-        mergeRegions    true;
-        remove          false;
-    }
-
-    bottomAir
-    {
-        selectionMode   residual;
-        mergeRegions    true;
-        remove          false;
-    }
-}
+// Identify regions by insidePoints and add to individual cellZones.
+cellZones
+(
+//    {
+//        name            topAir;
+//        insidePoints    ( ( -0.006 -0.006 -0.006 ) );
+//    }
+);
 
 // ************************************************************************* //
 

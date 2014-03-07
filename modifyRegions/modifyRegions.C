@@ -36,6 +36,7 @@ Description
 #include "cellSet.H"
 #include "faceSet.H"
 #include "pointSet.H"
+#include "Keyed.H"
 #include "globalMeshData.H"
 #include "timeSelector.H"
 #include "IOobjectList.H"
@@ -49,7 +50,36 @@ using namespace Foam;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+template<class ZoneType>
+void removeZone
+(
+    ZoneMesh<ZoneType, polyMesh>& zones,
+    const word& setName
+)
+{
+    label zoneID = zones.findZoneID(setName);
 
+    if (zoneID != -1)
+    {
+        Info<< "Removing zone " << setName << " at index " << zoneID << endl;
+        // Shuffle to last position
+        labelList oldToNew(zones.size());
+        label newI = 0;
+        forAll(oldToNew, i)
+        {
+            if (i != zoneID)
+            {
+                oldToNew[i] = newI++;
+            }
+        }
+        oldToNew[zoneID] = newI;
+        zones.reorder(oldToNew);
+        // Remove last element
+        zones.setSize(zones.size()-1);
+        zones.clearAddressing();
+        zones.write();
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -84,6 +114,50 @@ int main(int argc, char *argv[])
     {
         minRegionSize = readLabel(modifyRegionsDict.lookup("minRegionSize"));
     }
+
+    const word defaultCellZone = modifyRegionsDict.lookup("defaultCellZone");
+    const word cavitiesCellZone = modifyRegionsDict.lookup("cavitiesCellZone");
+    const bool mergeRegions = readBool(modifyRegionsDict.lookup("mergeRegions"));
+    const bool invertCavities = readBool(modifyRegionsDict.lookup("invertCavities"));
+    const List<dictionary> cellZones = modifyRegionsDict.lookup("cellZones");
+
+    Map<word> identifiers;
+    forAll(cellZones, zoneI)
+    {
+        word zoneName = cellZones[zoneI].lookup("name");
+        pointField insidePoints = cellZones[zoneI].lookup("insidePoints");
+        forAll( insidePoints, pointI )
+        {
+            point insidePoint = insidePoints[pointI];
+            label cellI = mesh.findCell(insidePoint);
+            identifiers.insert(cellI, zoneName);
+        }
+    }
+    const labelList insideCells = identifiers.toc();
+
+
+
+
+
+    //forAllConstIter(dictionary, modifyRegionsDict.subDict("regions"), iter)
+    //{
+    //    const dictionary& dict = iter().dict();
+    //    word name = iter().keyword();
+    //    word selectionMode = dict.lookup("selectionMode");
+
+    //    if (selectionMode == "points")
+    //    {
+    //        pointField selectionPoints = dict.lookup("selectionPoints");
+    //        forAll(selectionPoints, i)
+    //        {
+    //            point selectionPoint = selectionPoints[i];
+    //            label cellI = mesh.findCell(selectionPoint);
+    //            Info<< nl << "Found point " << selectionPoint << " in cell " << cellI
+    //                << endl;
+
+    //        }
+    //    }
+    //}
 
 
     forAll(timeDirs, timeI)
@@ -144,12 +218,27 @@ int main(int argc, char *argv[])
                 currentSet().write();
             }
         }
+
+        const word setType = "cellSet";
+        autoPtr<topoSet> cavitiesSet;
+        cavitiesSet = topoSet::New
+        (
+            setType,
+            mesh,
+            cavitiesCellZone,
+            10000
+        );
+        cavitiesSet().write();
+
+        wordList setsToRemove;
+        wordList newSets;
+
         forAll( regions, i )
         {
             word region = regions[i];
-            autoPtr<topoSet> currentSet;
+            autoPtr<topoSet> regionSet;
             const word setType = "cellSet";
-            currentSet = topoSet::New
+            regionSet = topoSet::New
             (
                 setType,
                 mesh,
@@ -157,55 +246,114 @@ int main(int argc, char *argv[])
                 IOobject::MUST_READ
             );
 
-            label regionSize = returnReduce(currentSet().size(), sumOp<label>());
+            word newCellSetName = cavitiesCellZone;
+            if (regionSet().size() > minRegionSize)
+                newCellSetName = defaultCellZone;
+                newSets.append(newCellSetName);
 
-            Info<< "Read set " << currentSet().type() << " "
-                << region<< " with size "
-                << returnReduce(currentSet().size(), sumOp<label>())
-                << endl
-                << currentSet().size()
-                << endl;
+            forAll( insideCells, i )
+            {
+                label insideCell = insideCells[i];
+                if ( regionSet()[insideCell] )
+                {
+                    newCellSetName = identifiers[insideCell];
+                    newSets.append(newCellSetName);
+                }
+            }
 
-            autoPtr<topoSet> removeSet;
-            removeSet = topoSet::New
+            autoPtr<topoSet> newCellSet;
+            newCellSet = topoSet::New
             (
                 setType,
                 mesh,
-                "remove",
+                newCellSetName,
+                IOobject::READ_IF_PRESENT
+            );
+
+            word sourceType = "cellToCell";
+            dictionary sourceInfo;
+            sourceInfo.add("set", region);
+            topoSetSource::setAction action = topoSetSource::ADD;
+            autoPtr<topoSetSource> source = topoSetSource::New
+            (
+                sourceType,
+                mesh,
+                sourceInfo
+            );
+
+            source().applyToSet(action, newCellSet());
+            newCellSet().write();
+
+            //setsToRemove.append(region);
+        }
+
+        if (cavitiesSet().size() == 0)
+        {
+            setsToRemove.append(cavitiesCellZone);
+        }
+
+        if (setsToRemove.size() != 0 )
+        {
+            IOobjectList objects
+            (
+                mesh,
+                mesh.time().findInstance
+                (
+                    polyMesh::meshSubDir/"sets",
+                    word::null,
+                    IOobject::READ_IF_PRESENT,
+                    mesh.facesInstance()
+                ),
+                polyMesh::meshSubDir/"sets"
+            );
+
+            forAll( setsToRemove, i )
+            {
+                word setName = setsToRemove[i];
+                if (objects.found(setName))
+                {
+                    fileName object = objects[setName]->objectPath();
+                    Info<< "Removing file " << object << endl;
+                    rm(object);
+                }
+                removeZone
+                (
+                    const_cast<cellZoneMesh&>(mesh.cellZones()),
+                    setName
+                );
+            }
+        }
+
+        forAll( newSets, i )
+        {
+            const word newSet = newSets[i];
+            const word setType = "cellZoneSet";
+            autoPtr<topoSet> newCellZoneSet;
+            newCellZoneSet = topoSet::New
+            (
+                setType,
+                mesh,
+                newSet,
                 10000
             );
 
-            if ( regionSize > minRegionSize )
-            {
-            }
-            else if ( regionSize != 0 )
-            {
-                word sourceType = "cellToCell";
-                dictionary sourceInfo;
-                sourceInfo.add("set", region);
-                topoSetSource::setAction action = topoSetSource::ADD;
+            word sourceType = "setToCellZone";
+            dictionary sourceInfo;
+            sourceInfo.add("set", newSet);
+            topoSetSource::setAction action = topoSetSource::ADD;
+            autoPtr<topoSetSource> source = topoSetSource::New
+            (
+                sourceType,
+                mesh,
+                sourceInfo
+            );
 
-                Info<< " Applying source " << sourceType << endl;
-                autoPtr<topoSetSource> source = topoSetSource::New
-                (
-                    sourceType,
-                    mesh,
-                    sourceInfo
-                );
+            source().applyToSet(action, newCellZoneSet());
+            newCellZoneSet().write();
 
-                source().applyToSet(action, removeSet());
-                removeSet().write();
-            }
+
         }
     }
-
-
-
-
-
-
-
-
 
 
     Info<< "\nEnd\n" << endl;
