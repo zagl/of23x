@@ -292,6 +292,8 @@ int main(int argc, char *argv[])
             setsToRemove.append(cavitiesCellZone);
         }
 
+        Info<< setsToRemove << nl << nl << nl;
+
         if (setsToRemove.size() != 0 )
         {
             IOobjectList objects
@@ -310,12 +312,12 @@ int main(int argc, char *argv[])
             forAll( setsToRemove, i )
             {
                 word setName = setsToRemove[i];
-                if (objects.found(setName))
-                {
-                    fileName object = objects[setName]->objectPath();
-                    Info<< "Removing file " << object << endl;
-                    rm(object);
-                }
+                //if (objects.found(setName))
+                //{
+                //    fileName object = objects[setName]->objectPath();
+                //    Info<< "Removing file " << object << endl;
+                //    rm(object);
+                //}
                 removeZone
                 (
                     const_cast<cellZoneMesh&>(mesh.cellZones()),
@@ -350,8 +352,6 @@ int main(int argc, char *argv[])
 
             source().applyToSet(action, newCellZoneSet());
             newCellZoneSet().write();
-
-
         }
     }
 
