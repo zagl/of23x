@@ -220,8 +220,9 @@ config.add("snappyHexMesh", snappyHexMesh);
 
 dictionary changeDictionary;
 
-bool radiationOn = configDict.lookup("radiation");
-word coupledWallType = radiationOn ? "coupledRadiationWall" : "coupledWall";
+word radiation = configDict.lookup("radiation");
+word coupledWallType =
+    radiation == "none" ? "coupledWall" : "coupledRadiationWall";
 changeDictionary.add("coupledWallType", coupledWallType);
 config.add("changeDictionary", changeDictionary);
 
@@ -238,19 +239,19 @@ forAllConstIter(dictionary, rotationsDict, iter)
     word name = iter().keyword();
     scalar rpm = readScalar(dict.lookup("rpm"));
     vectorField axis = dict.lookup("axis");
-    
+
     dictionary coeffs;
     coeffs.add("origin", axis[0]);
     coeffs.add("axis", axis[1] - axis[0]);
     coeffs.add("omega", constant::mathematical::twoPi * rpm / 60);
-    
+
     dictionary option;
     option.add("active", "on");
     option.add("selectionMode", "cellZone");
     option.add("cellZone", name);
     option.add("type", "MRFSource");
     option.add("MRFSourceCoeffs", coeffs);
-    
+
     fvOptions.add(name, option);
 }
 

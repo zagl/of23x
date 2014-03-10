@@ -15,9 +15,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-radiation       on;
+#include        "./system/configDict"
 
-radiationModel  fvDOM; 
+radiationModel  $config.radiation.model;
 
 fvDOMCoeffs
 {
@@ -27,12 +27,14 @@ fvDOMCoeffs
     maxIter 5;
 } 
 
-solverFreq 100;
+solverFreq      $config.radiation.frequency;
 
 absorptionEmissionModel none;
 
 scatterModel    none;
 
 sootModel       none;
+
+#remove config;
 
 // ************************************************************************* //

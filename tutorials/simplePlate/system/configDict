@@ -22,7 +22,7 @@ config
     fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
     elementGradient 1.1;
     open            yes;
-    radiation       false;
+    radiation       fvDOM;
     gravity         ( 0 0 -9.81 );
     temperature
     {

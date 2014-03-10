@@ -221,7 +221,7 @@ Info<< snappyHexMesh << nl;
 
 dictionary changeDictionary;
 
-bool radiationOn = configDict.lookup("radiation");
+bool radiationOn = readBool(configDict.lookup("radiation"));
 word coupledWallType = radiationOn ? "coupledRadiationWall" : "coupledWall";
 changeDictionary.add("coupledWallType", coupledWallType);
 config.add("changeDictionary", changeDictionary);
