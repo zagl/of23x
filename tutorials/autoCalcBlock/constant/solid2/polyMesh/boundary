@@ -27,15 +27,15 @@ FoamFile
         sampleRegion    solid1;
         samplePatch     solid1_to_solid2;
     }
-    solid2_to_FLUID1
+    solid2_to_FLUID
     {
         type            mappedWall;
         inGroups        1(wall);
         nFaces          500;
         startFace       2800;
         sampleMode      nearestPatchFace;
-        sampleRegion    FLUID1;
-        samplePatch     FLUID1_to_solid2;
+        sampleRegion    FLUID;
+        samplePatch     FLUID_to_solid2;
     }
 )
 

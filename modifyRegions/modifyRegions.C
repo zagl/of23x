@@ -61,7 +61,6 @@ void removeZone
 
     if (zoneID != -1)
     {
-        Info<< "Removing zone " << setName << " at index " << zoneID << endl;
         // Shuffle to last position
         labelList oldToNew(zones.size());
         label newI = 0;
@@ -135,31 +134,6 @@ int main(int argc, char *argv[])
     }
     const labelList insideCells = identifiers.toc();
 
-
-
-
-
-    //forAllConstIter(dictionary, modifyRegionsDict.subDict("regions"), iter)
-    //{
-    //    const dictionary& dict = iter().dict();
-    //    word name = iter().keyword();
-    //    word selectionMode = dict.lookup("selectionMode");
-
-    //    if (selectionMode == "points")
-    //    {
-    //        pointField selectionPoints = dict.lookup("selectionPoints");
-    //        forAll(selectionPoints, i)
-    //        {
-    //            point selectionPoint = selectionPoints[i];
-    //            label cellI = mesh.findCell(selectionPoint);
-    //            Info<< nl << "Found point " << selectionPoint << " in cell " << cellI
-    //                << endl;
-
-    //        }
-    //    }
-    //}
-
-
     forAll(timeDirs, timeI)
     {
         runTime.setTime(timeDirs[timeI], timeI);
@@ -179,6 +153,10 @@ int main(int argc, char *argv[])
                 solids.append( cellZoneName );
         }
 
+        Info<< nl
+            << "Remove multiply assigned cells from region cellSets:" 
+            << nl ;
+
         forAll( regions, i )
         {
             word region = regions[i];
@@ -193,7 +171,7 @@ int main(int argc, char *argv[])
                 IOobject::MUST_READ
             );
 
-            Info<< "Read set " << currentSet().type() << " "
+            Info<< "Read " << currentSet().type() << " "
                 << region<< " with size "
                 << returnReduce(currentSet().size(), sumOp<label>())
                 << endl;
@@ -206,7 +184,6 @@ int main(int argc, char *argv[])
                 sourceInfo.add("set", solid);
                 topoSetSource::setAction action = topoSetSource::DELETE;
 
-                Info<< " Applying source " << sourceType << endl;
                 autoPtr<topoSetSource> source = topoSetSource::New
                 (
                     sourceType,
@@ -230,8 +207,10 @@ int main(int argc, char *argv[])
         );
         cavitiesSet().write();
 
+        Info<< nl << "Assign regions to specified cellSets:" << nl;
+
         wordList setsToRemove;
-        wordList newSets;
+        wordHashSet newSets;
 
         forAll( regions, i )
         {
@@ -246,10 +225,20 @@ int main(int argc, char *argv[])
                 IOobject::MUST_READ
             );
 
+            setsToRemove.append(region);
+
+            label regionSize = regionSet().size();
+            if (regionSize == 0)
+            {
+                continue;
+            }
+
             word newCellSetName = cavitiesCellZone;
-            if (regionSet().size() > minRegionSize)
+            if (regionSize > minRegionSize)
+            {
                 newCellSetName = defaultCellZone;
-                newSets.append(newCellSetName);
+                newSets.insert(newCellSetName);
+            }
 
             forAll( insideCells, i )
             {
@@ -257,9 +246,10 @@ int main(int argc, char *argv[])
                 if ( regionSet()[insideCell] )
                 {
                     newCellSetName = identifiers[insideCell];
-                    newSets.append(newCellSetName);
+                    newSets.insert(newCellSetName);
                 }
             }
+
 
             autoPtr<topoSet> newCellSet;
             newCellSet = topoSet::New
@@ -269,6 +259,8 @@ int main(int argc, char *argv[])
                 newCellSetName,
                 IOobject::READ_IF_PRESENT
             );
+
+            Info<< "Create new cellSet " << newCellSetName << nl;
 
             word sourceType = "cellToCell";
             dictionary sourceInfo;
@@ -284,15 +276,29 @@ int main(int argc, char *argv[])
             source().applyToSet(action, newCellSet());
             newCellSet().write();
 
-            //setsToRemove.append(region);
         }
+
+        cavitiesSet = topoSet::New
+        (
+            setType,
+            mesh,
+            cavitiesCellZone,
+            IOobject::MUST_READ
+        );
 
         if (cavitiesSet().size() == 0)
         {
             setsToRemove.append(cavitiesCellZone);
         }
+        else if (invertCavities)
+        {
+            Info<< "Invert set " << cavitiesCellZone << nl;
+            cavitiesSet().invert(mesh.nCells());
+            cavitiesSet().write();
+        }
 
-        Info<< setsToRemove << nl << nl << nl;
+        Info<< nl;
+
 
         if (setsToRemove.size() != 0 )
         {
@@ -312,12 +318,12 @@ int main(int argc, char *argv[])
             forAll( setsToRemove, i )
             {
                 word setName = setsToRemove[i];
-                //if (objects.found(setName))
-                //{
-                //    fileName object = objects[setName]->objectPath();
-                //    Info<< "Removing file " << object << endl;
-                //    rm(object);
-                //}
+                Info<< "Removing set " << setName << endl;
+                if (objects.found(setName))
+                {
+                    fileName object = objects[setName]->objectPath();
+                    rm(object);
+                }
                 removeZone
                 (
                     const_cast<cellZoneMesh&>(mesh.cellZones()),
@@ -326,9 +332,11 @@ int main(int argc, char *argv[])
             }
         }
 
-        forAll( newSets, i )
+
+        wordList newSetsList = newSets.toc();
+        forAll( newSetsList, i )
         {
-            const word newSet = newSets[i];
+            const word newSet = newSetsList[i];
             const word setType = "cellZoneSet";
             autoPtr<topoSet> newCellZoneSet;
             newCellZoneSet = topoSet::New
@@ -338,6 +346,8 @@ int main(int argc, char *argv[])
                 newSet,
                 10000
             );
+
+            Info<< "Create new cellZoneSet " << newSet << nl;
 
             word sourceType = "setToCellZone";
             dictionary sourceInfo;

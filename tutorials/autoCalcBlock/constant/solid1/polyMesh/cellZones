@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-4
+3
 (
 solid1
 {
@@ -1033,13 +1033,7 @@ solid2
 cellLabels      0();
 }
 
-FLUID1
-{
-    type cellZone;
-cellLabels      0();
-}
-
-cells
+FLUID
 {
     type cellZone;
 cellLabels      0();

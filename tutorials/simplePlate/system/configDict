@@ -9,29 +9,33 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0/solid1";
-    object      cellToRegion;
+    class       dictionary;
+    location    "system";
+    object      configDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
-
-internalField   uniform 0;
-
-boundaryField
+config
 {
-    solid1_to_solid2
+    elementLength   0.004;
+    d               0.02;
+    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
+    elementGradient 1.1;
+    open            yes;
+    radiation       false;
+    gravity         ( 0 0 -9.81 );
+    temperature
     {
-        type            calculated;
-        value           uniform 0;
+        start       293.15;
+        min         $start;
+        max         500;
     }
-    solid1_to_FLUID
+    inlet
     {
-        type            calculated;
-        value           uniform 0;
+        velocity        ( 0 0 0 );
+        temperature     293.15;
     }
+    #include "geometryDict"
 }
-
 
 // ************************************************************************* //

@@ -12,21 +12,17 @@ runApp()
 }
 
 mkdir log 2> /dev/null
-cp bak/* .
-caseInit
-
 
 runApp blockMesh
 runApp snappyHexMesh -overwrite
 runApp splitMeshRegions -overwrite -cellZones -makeCellZones
 runApp modifyRegions
-runApp subsetMesh cavities -overwrite
 runApp splitMeshRegions -overwrite -cellZonesOnly
 
 caseSetup
 
 #-- Run on single processor
-#runApp chtMultiRegionSimpleFoam
+runApp chtMultiRegionSimpleFoam
 
 
 echo

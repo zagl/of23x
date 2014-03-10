@@ -31,7 +31,7 @@ for dir in 0/*; do
     test -d $dir || continue
     region=$(basename $dir)
     echo "Setup region $region"
-    TYPE=$(test "${region::-1}" = "FLUID" && echo FLUID || echo SOLID)
+    TYPE=$(test "${region::1}" = "F" && echo FLUID || echo SOLID)
     for folder in 0 constant system; do
         for file in $template/$folder/$TYPE/*; do
             sed "s/$TYPE/$region/g" $file > $folder/$region/$(basename $file)

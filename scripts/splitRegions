@@ -81,7 +81,7 @@ function setCellRegions
 #function splitRegions
 ###############################################################################
 #{
-  splitMeshRegions -cellZones -makeCellZones -overwrite > log/splitMeshRegions.first.logfile
+#  splitMeshRegions -cellZones -makeCellZones -overwrite > log/splitMeshRegions.first.logfile
 
   mergeCellRegions
   setSet -batch merge.setSet > log/setSet.merge.logfile
@@ -89,11 +89,11 @@ function setCellRegions
   setCellRegions
   setSet -batch batch.setSet > log/setSet.regions.logfile
 
-  subsetMesh cells -overwrite
+#  subsetMesh cells -overwrite
   
-  splitMeshRegions -cellZonesOnly -overwrite > log/splitMeshRegions.final.logfile
+#  splitMeshRegions -cellZonesOnly -overwrite > log/splitMeshRegions.final.logfile
 
-  paraFoam -touchAll
+#  paraFoam -touchAll
 #}
 
 

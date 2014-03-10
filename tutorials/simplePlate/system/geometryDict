@@ -9,28 +9,39 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0/solid1";
-    object      cellToRegion;
+    class       dictionary;
+    location    "system";
+    object      geometryDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
+boundingBox     2 ( ( -0.002 -0.02 -0.02 ) ( 0.002 0.02 0.02 ) );
 
-internalField   uniform 0;
-
-boundaryField
+solids
 {
-    solid1_to_solid2
+    plate
     {
-        type            calculated;
-        value           uniform 0;
+        elementLength   0.001;
+        conductivity    210;
+        emissivity      0.8;
+        power           0.5;
     }
-    solid1_to_FLUID
-    {
-        type            calculated;
-        value           uniform 0;
-    }
+}
+
+blanks
+{
+}
+
+baffles
+{
+}
+
+rotations
+{
+}
+
+refinements
+{
 }
 
 

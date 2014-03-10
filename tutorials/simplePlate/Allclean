@@ -6,6 +6,4 @@ cd ${0%/*} || exit 1    # run from this directory
 
 cleanCase
 
-rm -fr 0 system constant log dynamicCode
-
 # ----------------------------------------------------------------- end-of-file

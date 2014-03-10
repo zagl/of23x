@@ -52,7 +52,7 @@ boundaryField
     {
         type        compressible::turbulentTemperatureCoupledBaffleMixed;
         Tnbr        T;
-        kappa       solidThermo;
+        kappa       fluidThermo;
         kappaName   none;
         value       $internalField;
     }
@@ -61,11 +61,11 @@ boundaryField
     {
         type        compressible::turbulentTemperatureRadCoupledMixed;
         Tnbr        T;
-        kappa       solidThermo;
+        kappa       fluidThermo;
         kappaName   none;
         value       $internalField; 
-        Qr          none;
-        QrNbr       Qr;
+        Qr          Qr;
+        QrNbr       none;
     }
 }
 
