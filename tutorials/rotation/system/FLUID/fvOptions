@@ -10,38 +10,25 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include        "./system/codeDict"
 
-dictionaryReplacement
+temperatureLimit
 {
-    boundary
+    active          on;
+    selectionMode   all;
+    type            temperatureLimitsConstraint;
+    temperatureLimitsConstraintCoeffs
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        Tmin            $:config.temperature.min;
+        Tmax            $:config.temperature.max;
     }
 }
 
-#remove config;
+$:config.fvOptions
 
-// ************************************************************************* //
+#remove config;

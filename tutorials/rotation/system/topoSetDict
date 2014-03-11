@@ -10,37 +10,40 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      topoSetDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "./system/codeDict"
 
-dictionaryReplacement
-{
-    boundary
-    {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
+actions $:config.topoSet.actions;
 
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
+//actions
+//(
+//    {
+//        name    ROT1;
+//        type    cellSet;
+//        action  new;
+//        source  cylinderToCell;
+//        sourceInfo
+//        {
+//           p1       (0.2 0.2 -10);
+//           p2       (0.2 0.2 0);
+//           radius   5.0;
+//        }
+//    }
 
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
-    }
-}
+//    {
+//        name    ROT1;
+//        type    cellZoneSet;
+//        action  new;
+//        source  setToCellZone;
+//        sourceInfo
+//        {
+//            set ROT1;
+//        }
+//    }
+//);
 
 #remove config;
 

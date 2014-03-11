@@ -213,7 +213,6 @@ snappyHexMesh.add("refinementRegions", refinementRegions);
 snappyHexMesh.add("locationInMesh", locationInMesh);
 config.add("snappyHexMesh", snappyHexMesh);
 
-Info<< snappyHexMesh << nl;
 
 /*---------------------------------------------------------------------------*\
                                changeDictionary
@@ -221,9 +220,29 @@ Info<< snappyHexMesh << nl;
 
 dictionary changeDictionary;
 
-bool radiationOn = readBool(configDict.lookup("radiation"));
-word coupledWallType = radiationOn ? "coupledRadiationWall" : "coupledWall";
+word radiation = configDict.subDict("radiation").lookup("model");
+word coupledWallType =
+    radiation == "none" ? "coupledWall" : "coupledRadiationWall";
 changeDictionary.add("coupledWallType", coupledWallType);
+
+
+vector gravity = configDict.lookup("gravity");
+word outlet = "noOutlet";
+const char* componentNames[] = {"X", "Y", "Z"};
+forAll( gravity, i )
+{
+    if (gravity[i] < 0)
+    {
+        outlet = "max" + word(componentNames[i]);
+    }
+    else if (gravity[i] > 0)
+    {
+        outlet = "min" + word(componentNames[i]);
+    }
+}
+changeDictionary.add("outlet", outlet);
+
+
 config.add("changeDictionary", changeDictionary);
 
 /*---------------------------------------------------------------------------*\
@@ -239,19 +258,19 @@ forAllConstIter(dictionary, rotationsDict, iter)
     word name = iter().keyword();
     scalar rpm = readScalar(dict.lookup("rpm"));
     vectorField axis = dict.lookup("axis");
-    
+
     dictionary coeffs;
     coeffs.add("origin", axis[0]);
     coeffs.add("axis", axis[1] - axis[0]);
     coeffs.add("omega", constant::mathematical::twoPi * rpm / 60);
-    
+
     dictionary option;
     option.add("active", "on");
     option.add("selectionMode", "cellZone");
     option.add("cellZone", name);
     option.add("type", "MRFSource");
     option.add("MRFSourceCoeffs", coeffs);
-    
+
     fvOptions.add(name, option);
 }
 

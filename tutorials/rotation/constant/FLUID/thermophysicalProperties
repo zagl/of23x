@@ -10,38 +10,40 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    location    "constant/bottomAir";
+    object      thermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
-
-dictionaryReplacement
+thermoType
 {
-    boundary
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        nMoles          1;
+        molWeight       28.9;
+    }
+    thermodynamics
+    {
+        Cp              1000;
+        Hf              0;
+    }
+    transport
+    {
+        mu              1.8e-05;
+        Pr              0.7;
     }
 }
 
-#remove config;
 
 // ************************************************************************* //

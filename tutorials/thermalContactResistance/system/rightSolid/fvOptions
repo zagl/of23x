@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.0                                 |
+|  \\    /   O peration     | Version:  2.2.2                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,38 +10,26 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
-
-dictionaryReplacement
+energySource1
 {
-    boundary
+    type            scalarSemiImplicitSource;
+    active          on;
+    selectionMode   all;
+
+    scalarSemiImplicitSourceCoeffs
     {
-        "oldInternalFaces"
+        volumeMode      absolute;
+        injectionRateSuSp
         {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
+            h           (1 0);
         }
     }
 }
 
-#remove config;
 
 // ************************************************************************* //

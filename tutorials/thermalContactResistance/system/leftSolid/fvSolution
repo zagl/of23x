@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.0                                 |
+|  \\    /   O peration     | Version:  2.2.2                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,38 +10,36 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      fvSolution;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
-
-dictionaryReplacement
+solvers
 {
-    boundary
+    h
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        solver           PCG;
+        preconditioner   DIC;
+        tolerance        1e-06;
+        relTol           0.1;
     }
 }
 
-#remove config;
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    
+}
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        h               1;
+    }
+}
 
 // ************************************************************************* //

@@ -10,38 +10,36 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      topoSetDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+// All undefined regions are added to this cellZone.
+defaultCellZone     FLUID;
 
-dictionaryReplacement
-{
-    boundary
-    {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
+// Merge regions into a single cellZone or create separate cellZones.
+// Separate cellZones are named by defaultCellZone plus numerical suffix.
+mergeRegions        true;
 
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
+// Put regions with a small number of cells into a separate cellZone.
+cavitiesCellZone    cavities;
 
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
-    }
-}
+// Invert cavitiesCellZone for usage with subSetMesh.
+invertCavities      true;
 
-#remove config;
+// Specify size threshold by number of cells or
+// relative in relation to overall mesh size.
+relativeSize        yes;
+minRegionSize       0.02;
+
+// Identify regions by insidePoints and add to individual cellZones.
+cellZones
+(
+//    {
+//        name            topAir;
+//        insidePoints    ( ( -0.006 -0.006 -0.006 ) );
+//    }
+);
 
 // ************************************************************************* //
+

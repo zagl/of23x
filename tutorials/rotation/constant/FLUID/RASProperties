@@ -10,38 +10,15 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+RASModel        laminar;
 
-dictionaryReplacement
-{
-    boundary
-    {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
+turbulence      on;
 
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
+printCoeffs     on;
 
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
-    }
-}
-
-#remove config;
 
 // ************************************************************************* //

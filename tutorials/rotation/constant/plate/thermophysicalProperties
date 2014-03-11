@@ -1,4 +1,4 @@
-/*--------------------------------*- C++ -*----------------------------------*\
+/*--------------------------------*- C++ -*----------------------------------* \
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  2.3.0                                 |
@@ -10,35 +10,45 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    object      thermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include        "./system/configDict"
 
-dictionaryReplacement
+thermoType
 {
-    boundary
+    type            heSolidThermo;
+    mixture         pureMixture;
+    transport       constIso;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
+        nMoles      1;
+        molWeight   12;
+    }
 
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
+    transport
+    {
+        kappa   $:config.solids.plate.conductivity;
+    }
 
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+    thermodynamics
+    {
+        Hf      0;
+        Cp      450;
+    }
+
+    equationOfState
+    {
+        rho     8000;
     }
 }
 

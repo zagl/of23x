@@ -24,20 +24,13 @@ dictionaryReplacement
         {
             type            wall;
         }
-
-        "F.*"
+        ".*_to_F.*"
         {
             inGroups        ($:config.changeDictionary.coupledWallType);
         }
-
-        "(min|max)."
+        ".*_to_[^F].*"
         {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
+            inGroups        (coupledWall);
         }
     }
 }

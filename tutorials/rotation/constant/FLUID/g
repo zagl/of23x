@@ -9,38 +9,16 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      changeDictionaryDict;
+    class       uniformDimensionedVectorField;
+    object      g;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include "./system/configDict"
 
-dictionaryReplacement
-{
-    boundary
-    {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
+dimensions      [0 1 -2 0 0 0 0];
 
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
-    }
-}
+value           $:config.gravity;
 
 #remove config;
 

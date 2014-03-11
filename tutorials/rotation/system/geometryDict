@@ -1,47 +1,55 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.0                                 |
+|  \\    /   O peration     | Version:  2.3.x                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
-    format      ascii;
+    format      binary;
     class       dictionary;
-    object      changeDictionaryDict;
+    location    "system";
+    object      geometryDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+boundingBox     2 ( ( -0.0095 -0.02 -0.02 ) ( 0.021 0.02 0.02 ) );
 
-dictionaryReplacement
+solids
 {
-    boundary
+    plate
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        elementLength   0.001;
+        conductivity    210;
+        emissivity      0.8;
+        power           1.0;
     }
 }
 
-#remove config;
+blanks
+{
+}
+
+baffles
+{
+}
+
+rotations
+{
+    ROT1
+    {
+        elementLength   0.001;
+        radius          0.011;
+        rpm             4500;
+        axis            2 ( ( 0 -0.02 0 ) ( 0 0.02 0 ) );
+    }
+}
+
+refinements
+{
+}
+
 
 // ************************************************************************* //

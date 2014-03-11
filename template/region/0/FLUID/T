@@ -50,7 +50,7 @@ boundaryField
 
     coupledWall
     {
-        type        compressible::turbulentTemperatureCoupledBaffleMixed;
+        type        compressible::myturbulentTemperatureCoupledBaffleMixed;
         Tnbr        T;
         kappa       fluidThermo;
         kappaName   none;

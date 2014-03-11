@@ -25,6 +25,13 @@ solids
         conductivity    210;
         emissivity      0.8;
         power           0.5;
+        contacts
+        (
+            {
+                to              box;
+                
+            }
+        );
     }
 }
 
@@ -43,6 +50,5 @@ rotations
 refinements
 {
 }
-
 
 // ************************************************************************* //

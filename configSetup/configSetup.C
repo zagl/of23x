@@ -97,11 +97,11 @@ int main(int argc, char *argv[])
         
         dictionary dict;
         dict.add("elementLength", 0.001);
-        dictionary& typeDict = configDict.subDict("solids");
+        word geomType = "solids";
 
         if ( regExp("ROT.*").match(geom) )
         {
-            typeDict = configDict.subDict("rotations");
+            geomType = "rotations";
             dict.add("radius", 0.018);
             dict.add("rpm", 4500.0);
             vectorField axis(2, vector(0, 0, 0));
@@ -110,17 +110,17 @@ int main(int argc, char *argv[])
         }
         else if ( regExp("FINE.*").match(geom) )
         {
-            typeDict = configDict.subDict("refinements");
+            geomType = "refinements";
         }
         else if ( regExp("__.*").match(geom) )
         {
-            typeDict = configDict.subDict("baffles");
+            geomType = "baffles";
             dict.add("conductivity", 1.0);
             dict.add("thickness", 0.001);
         }
         else if ( regExp("_.*").match(geom) )
         {
-            typeDict = configDict.subDict("blanks");
+            geomType = "blanks";
         }
         else
         {
@@ -129,9 +129,9 @@ int main(int argc, char *argv[])
             dict.add("power", 0);
         }
         
-        if ( ! typeDict.found(geom) )
+        if ( !configDict.subDict(geomType).found(geom) )
         {
-            typeDict.add(geom, dict);
+            configDict.subDict(geomType).add(geom, dict);
         }
     }
 
