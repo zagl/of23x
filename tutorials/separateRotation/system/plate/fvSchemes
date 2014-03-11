@@ -10,14 +10,44 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+ddtSchemes
+{
+    default     steadyState;
+}
 
-actions $:config.topoSet.actions;
+gradSchemes
+{
+    default         Gauss linear;
+}
 
-#remove config;
+divSchemes
+{
+    default         none;
+}
+
+laplacianSchemes
+{
+    default             none;
+    laplacian(alpha,h)  Gauss linear uncorrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         uncorrected;
+}
+
+fluxRequired
+{
+    default         no;
+}
 
 // ************************************************************************* //

@@ -10,13 +10,37 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      changeDictionaryDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "./system/codeDict"
 
-actions $:config.topoSet.actions;
+dictionaryReplacement
+{
+    boundary
+    {
+        "oldInternalFaces"
+        {
+            type            wall;
+        }
+
+        "F.*"
+        {
+            inGroups        ($:config.changeDictionary.coupledWallType);
+        }
+
+        "(min|max)."
+        {
+            inGroups        (open);
+        }
+        
+        $:config.changeDictionary.outlet
+        {
+            inGroups        (outlet);
+        }
+    }
+}
 
 #remove config;
 

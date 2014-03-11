@@ -10,14 +10,38 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include        "./system/configDict"
 
-actions $:config.topoSet.actions;
+temperatureLimit
+{
+    active          on;
+    selectionMode   all;
+    temperatureLimitsConstraintCoeffs
+    {
+        Tmin            $:config.temperature.min;
+        Tmax            $:config.temperature.max;
+    }
+    type            temperatureLimitsConstraint;
+}
+
+heatSource
+{
+    active          #calc "bool($:config.solids.plate.power)";
+    scalarSemiImplicitSourceCoeffs
+    {
+        injectionRateSuSp
+        {
+            h           ( $:config.solids.plate.power 0 );
+        }
+        volumeMode absolute;
+    }
+    selectionMode   all;
+    type            scalarSemiImplicitSource;
+}
 
 #remove config;
-
-// ************************************************************************* //

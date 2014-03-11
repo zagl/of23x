@@ -22,7 +22,7 @@ runApp splitMeshRegions -overwrite -cellZonesOnly
 caseSetup
 
 #-- Run on single processor
-runApp chtMultiRegionSimpleFoam
+#runApp chtMultiRegionSimpleFoam
 
 
 echo

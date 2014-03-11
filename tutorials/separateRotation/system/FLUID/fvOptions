@@ -10,14 +10,25 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    location    "system";
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include        "./system/codeDict"
 
-actions $:config.topoSet.actions;
+temperatureLimit
+{
+    active          on;
+    selectionMode   all;
+    type            temperatureLimitsConstraint;
+    temperatureLimitsConstraintCoeffs
+    {
+        Tmin            $:config.temperature.min;
+        Tmax            $:config.temperature.max;
+    }
+}
+
+$:config.fvOptions
 
 #remove config;
-
-// ************************************************************************* //

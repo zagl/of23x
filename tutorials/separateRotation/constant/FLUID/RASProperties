@@ -10,14 +10,15 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+RASModel        laminar;
 
-actions $:config.topoSet.actions;
+turbulence      on;
 
-#remove config;
+printCoeffs     on;
+
 
 // ************************************************************************* //

@@ -10,14 +10,16 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    location    "constant";
+    object      regionProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
-
-actions $:config.topoSet.actions;
-
-#remove config;
+regions
+(
+    fluid       (FLUID)
+    solid       (plate)
+);
 
 // ************************************************************************* //
+

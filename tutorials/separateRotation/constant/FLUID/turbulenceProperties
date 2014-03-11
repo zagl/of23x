@@ -10,14 +10,10 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      turbulenceProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
-
-actions $:config.topoSet.actions;
-
-#remove config;
+simulationType  laminar;
 
 // ************************************************************************* //

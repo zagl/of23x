@@ -10,14 +10,35 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      fvSolution;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+solvers
+{
+    h
+    {
+        solver           PCG;
+        preconditioner   DIC;
+        tolerance        1e-06;
+        relTol           0.1;
+    }
+}
 
-actions $:config.topoSet.actions;
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+}
 
-#remove config;
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        h               1.0;
+    }
+}
 
 // ************************************************************************* //

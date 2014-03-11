@@ -10,14 +10,55 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+ddtSchemes
+{
+    default         steadyState;
+}
 
-actions $:config.topoSet.actions;
+gradSchemes
+{
+    default         Gauss linear;
+}
 
-#remove config;
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      bounded Gauss upwind;
+    div(phi,K)      bounded Gauss upwind;
+    div(phi,h)      bounded Gauss upwind;
+    div(phi,k)      bounded Gauss upwind;
+    div(phi,epsilon) bounded Gauss upwind;
+    div(phi,R)      bounded Gauss upwind;
+    div(R)          Gauss linear;
+    div(Ji,Ii_h)    bounded Gauss linearUpwind grad(Ii_h);
+    div((muEff*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear uncorrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         uncorrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p_rgh;
+}
+
 
 // ************************************************************************* //

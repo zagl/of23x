@@ -9,14 +9,16 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      topoSetDict;
+    class       uniformDimensionedVectorField;
+    object      g;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/codeDict"
+#include "./system/configDict"
 
-actions $:config.topoSet.actions;
+dimensions      [0 1 -2 0 0 0 0];
+
+value           $:config.gravity;
 
 #remove config;
 
