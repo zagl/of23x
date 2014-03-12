@@ -17,8 +17,8 @@ FoamFile
 
 regions
 (
-    fluid       ()
-    solid       ()
+    fluid       $config.regionProperties.fluid
+    solid       $config.regionProperties.solid
 );
 
 // ************************************************************************* //

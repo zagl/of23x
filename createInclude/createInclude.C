@@ -66,24 +66,25 @@ int main(int argc, char *argv[])
             IOobject::AUTO_WRITE
         )
     );
-    
+
     const word dictName("configDict");
     #include "setSystemRunTimeDictionaryIO.H"
     IOdictionary dict(dictIO);
-    
-    
-    
-    
+
     dictionary config = dict.subDict("config");
-        
+    const dictionary& configDict = dict.subDict("config");
+    const dictionary& solidsDict = configDict.subDict("solids");
+    const dictionary& rotationsDict = configDict.subDict("rotations");
+    const dictionary& domainDict = configDict.subDict("domain");
+
 /*---------------------------------------------------------------------------*\
                                     blockMesh
 \*---------------------------------------------------------------------------*/
-    dictionary configDict = dict.subDict("config");
-    scalar globalLength  = readScalar(configDict.lookup("elementLength"));
-    scalar elementGradient = readScalar(configDict.lookup("elementGradient"));
+
+    scalar globalLength  = readScalar(domainDict.lookup("elementLength"));
+    scalar elementGradient = readScalar(domainDict.lookup("gradient"));
     vectorField boundingBox = configDict.lookup("boundingBox");
-    vectorField distance = configDict.lookup("fluidDistance");
+    vectorField distance = domainDict.lookup("width");
 
     vectorField l(4);
     vectorField divisions(3);
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
     HashTable<word> surfFileNames;
     forAll( triSurfaces, surfI )
     {
-        surfFileNames.insert( triSurfaces[surfI].lessExt(), triSurfaces[surfI] );
+        surfFileNames.insert(triSurfaces[surfI].lessExt(), triSurfaces[surfI]);
     }
 
     wordList geomTypes
@@ -194,15 +195,17 @@ int main(int argc, char *argv[])
         {
             const dictionary& dict = iter().dict();
             word name = iter().keyword();
-            
+
             dictionary geomDict;
             geomDict.add("name", name);
             geomDict.add("type", "triSurfaceMesh");
             geometry.add(surfFileNames[name], geomDict);
-            
+
             scalar localLength = readScalar(dict.lookup("elementLength"));
-            label refinementLevel = int(Foam::log(globalLength/localLength) / Foam::log(2.0) + 0.5);
-            
+            label refinementLevel =
+                int(Foam::log(globalLength/localLength)
+                / Foam::log(2.0) + 0.5);
+
             if ( geomType == "refinements" )
             {
                 dictionary region;
@@ -253,7 +256,7 @@ int main(int argc, char *argv[])
     changeDictionary.add("coupledWallType", coupledWallType);
 
 
-    vector gravity = configDict.lookup("gravity");
+    vector gravity = configDict.subDict("convection").lookup("gravity");
     word outlet = "noOutlet";
     const char* componentNames[] = {"X", "Y", "Z"};
     forAll( gravity, i )
@@ -274,21 +277,20 @@ int main(int argc, char *argv[])
                                   fvOptions
 \*---------------------------------------------------------------------------*/
     dictionary fvOptions;
-    const dictionary& solidsDict = configDict.subDict("solids");
     forAllConstIter(dictionary, solidsDict, iter)
     {
         const dictionary& dict = iter().dict();
         word name = iter().keyword();
         scalar power = readScalar(dict.lookup("power"));
-        
+
         dictionary solid;
-        
+
         if ( power > 0 ) 
         {
             Tuple2<scalar, scalar> h(power, 0);
             dictionary injectionRateSuSp;
             injectionRateSuSp.add("h", h);
-            
+
             dictionary coeffs;
             coeffs.add("volumeMode", "absolute");
             coeffs.add("injectionRateSuSp", injectionRateSuSp);
@@ -300,11 +302,10 @@ int main(int argc, char *argv[])
             heatSource.add("scalarSemiImplicitSourceCoeffs", coeffs);
             solid.add("heatSource", heatSource);
         }
-        
+
         fvOptions.add(name, solid);
     }
 
-    const dictionary& rotationsDict = configDict.subDict("rotations");
     forAllConstIter(dictionary, rotationsDict, iter)
     {
         const dictionary& dict = iter().dict();
@@ -323,17 +324,18 @@ int main(int argc, char *argv[])
         option.add("cellZone", name);
         option.add("type", "MRFSource");
         option.add("MRFSourceCoeffs", coeffs);
-        
+
         dictionary fluid;
         fluid.add(name, option);
 
         fvOptions.add("FLUID", fluid);
     }
     config.add("fvOptions", fvOptions);
-    
+
 /*---------------------------------------------------------------------------*\
                                   topoSet
 \*---------------------------------------------------------------------------*/
+
     dictionary topoSet;
     List<dictionary> actions;
     forAllConstIter(dictionary, rotationsDict, iter)
@@ -371,7 +373,15 @@ int main(int argc, char *argv[])
     topoSet.add("actions", actions);
     config.add("topoSet", topoSet);
 
-        
+/*---------------------------------------------------------------------------*\
+                               regionProperties
+\*---------------------------------------------------------------------------*/
+
+    dictionary regionProperties;
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
     includeDict.add("config", config);
 
     Info<< nl << "Write " << includeDictName << " ..." << endl;

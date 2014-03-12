@@ -8,14 +8,14 @@
 FoamFile
 {
     version     2.0;
-    format      ascii;
+    format      binary;
     class       dictionary;
     location    "system";
     object      geometryDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-boundingBox     2 ( ( 0 0 0 ) ( 1 1 1 ) );
+boundingBox     ( ( 0 0 0 ) ( 1 1 1 ) );
 
 solids
 {
@@ -36,6 +36,17 @@ rotations
 refinements
 {
 }
+
+fluids
+{
+    FLUID
+    {
+        selectionMode   all;
+        rotations       ();
+        baffles         ();
+    }
+}
+
 
 
 // ************************************************************************* //
