@@ -1,0 +1,145 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      binary;
+    class       dictionary;
+    location    "system";
+    object      includeDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+config
+{
+    elementLength   0.004;
+    d               0.02;
+    fluidDistance   ( ( 0.02 0.02 0.02 ) ( 0.02 0.02 0.02 ) );
+    elementGradient 1.2;
+    open            yes;
+    gravity         ( 0 0 -9.81 );
+    radiation
+    {
+        model           fvDOM;
+        frequency       20;
+    }
+    temperature
+    {
+        start           293.15;
+        min             293.15;
+        max             500;
+    }
+    inlet
+    {
+        velocity        ( 0 0 0 );
+        temperature     293.15;
+    }
+    boundingBox     2 ( ( -0.0095 -0.02 -0.02 ) ( 0.021 0.02 0.02 ) );
+    solids
+    {
+        plate
+        {
+            elementLength   0.001;
+            conductivity    210;
+            emissivity      0.8;
+            power           0;
+        }
+    }
+    blanks
+    {
+    }
+    baffles
+    {
+    }
+    rotations
+    {
+        ROT1
+        {
+            elementLength   0.001;
+            radius          0.011;
+            rpm             4500;
+            axis            2 ( ( 0 -0.02 0 ) ( 0 0.02 0 ) );
+        }
+    }
+    refinements
+    {
+    }
+    blockMesh
+    {
+        blocks          27 ( hex 8 ( 0 1 5 4 16 17 21 20 ) ( 4 4 4 ) simpleGrading ( 0.5787037037 0.5787037037 0.5787037037 ) hex 8 ( 1 2 6 5 17 18 22 21 ) ( 8 4 4 ) simpleGrading ( 1 0.5787037037 0.5787037037 ) hex 8 ( 2 3 7 6 18 19 23 22 ) ( 4 4 4 ) simpleGrading ( 1.728 0.5787037037 0.5787037037 ) hex 8 ( 4 5 9 8 20 21 25 24 ) ( 4 10 4 ) simpleGrading ( 0.5787037037 1 0.5787037037 ) hex 8 ( 5 6 10 9 21 22 26 25 ) ( 8 10 4 ) simpleGrading ( 1 1 0.5787037037 ) hex 8 ( 6 7 11 10 22 23 27 26 ) ( 4 10 4 ) simpleGrading ( 1.728 1 0.5787037037 ) hex 8 ( 8 9 13 12 24 25 29 28 ) ( 4 4 4 ) simpleGrading ( 0.5787037037 1.728 0.5787037037 ) hex 8 ( 9 10 14 13 25 26 30 29 ) ( 8 4 4 ) simpleGrading ( 1 1.728 0.5787037037 ) hex 8 ( 10 11 15 14 26 27 31 30 ) ( 4 4 4 ) simpleGrading ( 1.728 1.728 0.5787037037 ) hex 8 ( 16 17 21 20 32 33 37 36 ) ( 4 4 10 ) simpleGrading ( 0.5787037037 0.5787037037 1 ) hex 8 ( 17 18 22 21 33 34 38 37 ) ( 8 4 10 ) simpleGrading ( 1 0.5787037037 1 ) hex 8 ( 18 19 23 22 34 35 39 38 ) ( 4 4 10 ) simpleGrading ( 1.728 0.5787037037 1 ) hex 8 ( 20 21 25 24 36 37 41 40 ) ( 4 10 10 ) simpleGrading ( 0.5787037037 1 1 ) hex 8 ( 21 22 26 25 37 38 42 41 ) ( 8 10 10 ) simpleGrading ( 1 1 1 ) hex 8 ( 22 23 27 26 38 39 43 42 ) ( 4 10 10 ) simpleGrading ( 1.728 1 1 ) hex 8 ( 24 25 29 28 40 41 45 44 ) ( 4 4 10 ) simpleGrading ( 0.5787037037 1.728 1 ) hex 8 ( 25 26 30 29 41 42 46 45 ) ( 8 4 10 ) simpleGrading ( 1 1.728 1 ) hex 8 ( 26 27 31 30 42 43 47 46 ) ( 4 4 10 ) simpleGrading ( 1.728 1.728 1 ) hex 8 ( 32 33 37 36 48 49 53 52 ) ( 4 4 4 ) simpleGrading ( 0.5787037037 0.5787037037 1.728 ) hex 8 ( 33 34 38 37 49 50 54 53 ) ( 8 4 4 ) simpleGrading ( 1 0.5787037037 1.728 ) hex 8 ( 34 35 39 38 50 51 55 54 ) ( 4 4 4 ) simpleGrading ( 1.728 0.5787037037 1.728 ) hex 8 ( 36 37 41 40 52 53 57 56 ) ( 4 10 4 ) simpleGrading ( 0.5787037037 1 1.728 ) hex 8 ( 37 38 42 41 53 54 58 57 ) ( 8 10 4 ) simpleGrading ( 1 1 1.728 ) hex 8 ( 38 39 43 42 54 55 59 58 ) ( 4 10 4 ) simpleGrading ( 1.728 1 1.728 ) hex 8 ( 40 41 45 44 56 57 61 60 ) ( 4 4 4 ) simpleGrading ( 0.5787037037 1.728 1.728 ) hex 8 ( 41 42 46 45 57 58 62 61 ) ( 8 4 4 ) simpleGrading ( 1 1.728 1.728 ) hex 8 ( 42 43 47 46 58 59 63 62 ) ( 4 4 4 ) simpleGrading ( 1.728 1.728 1.728 ) );
+        vertices        64 ( ( -0.0295 -0.04 -0.04 ) ( -0.0095 -0.04 -0.04 ) ( 0.021 -0.04 -0.04 ) ( 0.041 -0.04 -0.04 ) ( -0.0295 -0.02 -0.04 ) ( -0.0095 -0.02 -0.04 ) ( 0.021 -0.02 -0.04 ) ( 0.041 -0.02 -0.04 ) ( -0.0295 0.02 -0.04 ) ( -0.0095 0.02 -0.04 ) ( 0.021 0.02 -0.04 ) ( 0.041 0.02 -0.04 ) ( -0.0295 0.04 -0.04 ) ( -0.0095 0.04 -0.04 ) ( 0.021 0.04 -0.04 ) ( 0.041 0.04 -0.04 ) ( -0.0295 -0.04 -0.02 ) ( -0.0095 -0.04 -0.02 ) ( 0.021 -0.04 -0.02 ) ( 0.041 -0.04 -0.02 ) ( -0.0295 -0.02 -0.02 ) ( -0.0095 -0.02 -0.02 ) ( 0.021 -0.02 -0.02 ) ( 0.041 -0.02 -0.02 ) ( -0.0295 0.02 -0.02 ) ( -0.0095 0.02 -0.02 ) ( 0.021 0.02 -0.02 ) ( 0.041 0.02 -0.02 ) ( -0.0295 0.04 -0.02 ) ( -0.0095 0.04 -0.02 ) ( 0.021 0.04 -0.02 ) ( 0.041 0.04 -0.02 ) ( -0.0295 -0.04 0.02 ) ( -0.0095 -0.04 0.02 ) ( 0.021 -0.04 0.02 ) ( 0.041 -0.04 0.02 ) ( -0.0295 -0.02 0.02 ) ( -0.0095 -0.02 0.02 ) ( 0.021 -0.02 0.02 ) ( 0.041 -0.02 0.02 ) ( -0.0295 0.02 0.02 ) ( -0.0095 0.02 0.02 ) ( 0.021 0.02 0.02 ) ( 0.041 0.02 0.02 ) ( -0.0295 0.04 0.02 ) ( -0.0095 0.04 0.02 ) ( 0.021 0.04 0.02 ) ( 0.041 0.04 0.02 ) ( -0.0295 -0.04 0.04 ) ( -0.0095 -0.04 0.04 ) ( 0.021 -0.04 0.04 ) ( 0.041 -0.04 0.04 ) ( -0.0295 -0.02 0.04 ) ( -0.0095 -0.02 0.04 ) ( 0.021 -0.02 0.04 ) ( 0.041 -0.02 0.04 ) ( -0.0295 0.02 0.04 ) ( -0.0095 0.02 0.04 ) ( 0.021 0.02 0.04 ) ( 0.041 0.02 0.04 ) ( -0.0295 0.04 0.04 ) ( -0.0095 0.04 0.04 ) ( 0.021 0.04 0.04 ) ( 0.041 0.04 0.04 ) );
+    }
+    snappyHexMesh
+    {
+        geometry
+        {
+            plate.obj
+            {
+                name            plate;
+                type            triSurfaceMesh;
+            }
+            ROT1.obj
+            {
+                name            ROT1;
+                type            triSurfaceMesh;
+            }
+        }
+        refinementSurfaces
+        {
+            plate
+            {
+                level           2 { 2 };
+                cellZone        plate;
+                faceZone        plate;
+                cellZoneInside  inside;
+            }
+            ROT1
+            {
+                level           2 { 2 };
+            }
+        }
+        refinementRegions
+        {
+        }
+        locationInMesh  ( -0.00949 -0.01999 -0.01999 );
+    }
+    changeDictionary
+    {
+        coupledWallType coupledRadiationWall;
+        outlet          maxZ;
+    }
+    fvOptions
+    {
+        plate
+        {
+        }
+        FLUID
+        {
+            ROT1
+            {
+                active          true;
+                selectionMode   cellZone;
+                cellZone        ROT1;
+                type            MRFSource;
+                MRFSourceCoeffs
+                {
+                    origin          ( 0 -0.02 0 );
+                    axis            ( 0 0.04 0 );
+                    omega           471.238898;
+                }
+            }
+        }
+    }
+    topoSet
+    {
+        actions         2 ( { name ROT1 ; type cellSet ; action new ; source cylinderToCell ; sourceInfo { p1 ( 0 -0.021 0 ) ; p2 ( 0 0.021 0 ) ; radius 0.011 ; } } { name ROT1 ; type cellZoneSet ; action new ; source setToCellZone ; sourceInfo { set ROT1 ; } } );
+    }
+}
+
+
+// ************************************************************************* //

@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "./system/configDict"
+#include        "./system/includeDict"
 
 temperatureLimit
 {
@@ -29,19 +29,6 @@ temperatureLimit
     type            temperatureLimitsConstraint;
 }
 
-heatSource
-{
-    active          #calc "bool($:config.solids.SOLID.power)";
-    scalarSemiImplicitSourceCoeffs
-    {
-        injectionRateSuSp
-        {
-            h           ( $:config.solids.SOLID.power 0 );
-        }
-        volumeMode absolute;
-    }
-    selectionMode   all;
-    type            scalarSemiImplicitSource;
-}
+$:config.fvOptions.SOLID
 
 #remove config;

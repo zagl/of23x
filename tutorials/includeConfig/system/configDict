@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.3.0                                 |
+|  \\    /   O peration     | Version:  2.3.x                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,38 +10,36 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      changeDictionaryDict;
+    location    "system";
+    object      configDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "./system/includeDict"
-
-dictionaryReplacement
+config
 {
-    boundary
+    elementLength   0.002;
+    d               0.01;
+    fluidDistance   ( ( $d $d $d ) ( $d $d $d ) );
+    elementGradient 1.2;
+    open            yes;
+    gravity         ( 0 0 -9.81 );
+    radiation
     {
-        "oldInternalFaces"
-        {
-            type            wall;
-        }
-
-        "F.*"
-        {
-            inGroups        ($:config.changeDictionary.coupledWallType);
-        }
-
-        "(min|max)."
-        {
-            inGroups        (open);
-        }
-        
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        model           fvDOM;
+        frequency       20;
     }
+    temperature
+    {
+        start       293.15;
+        min         $start;
+        max         500;
+    }
+    inlet
+    {
+        velocity        ( 0 0 0 );
+        temperature     293.15;
+    }
+    #include "geometryDict"
 }
-
-#remove config;
 
 // ************************************************************************* //

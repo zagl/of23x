@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "./system/codeDict"
+#include        "./system/includeDict"
 
 temperatureLimit
 {
@@ -29,6 +29,6 @@ temperatureLimit
     }
 }
 
-$:config.fvOptions
+$:config.fvOptions.FLUID
 
 #remove config;

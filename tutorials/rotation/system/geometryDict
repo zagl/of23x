@@ -24,7 +24,7 @@ solids
         elementLength   0.001;
         conductivity    210;
         emissivity      0.8;
-        power           1.0;
+        power           0.0;
     }
 }
 

@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "./system/configDict"
+#include        "./system/includeDict"
 
 thermoType
 {

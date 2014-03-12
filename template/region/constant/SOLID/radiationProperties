@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include        "./system/configDict"
+#include        "./system/includeDict"
 
 radiation       on;
 

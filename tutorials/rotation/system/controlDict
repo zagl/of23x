@@ -47,7 +47,7 @@ runTimeModifiable true;
 
 libs
 (
-    "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField.so"
+    "myturbulentTemperatureCoupledBaffleMixed.so"
 );
 
 
