@@ -9,14 +9,13 @@ FoamFile
  object autoHexMeshDict; 	
 }
 
+#include "./system/includeDict"
 
 castellatedMesh true;
 
 snap true; 	
 
 addLayers false; 	
-
-#include "./system/codeDict"
 
 geometry
 {
@@ -103,5 +102,7 @@ meshQualityControls
 
 debug 0; 	
 
-mergeTolerance 1e-06; 	
+mergeTolerance 1e-06; 
+
+#remove config;	
 

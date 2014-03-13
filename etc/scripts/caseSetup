@@ -1,0 +1,34 @@
+#!/bin/bash
+
+template=$HOME/OpenFOAM/template/region
+solids=$(sed -ne 's/^ *solids[^(]*( \(.*\) );$/\1/p' system/includeDict)
+fluids=$(sed -ne 's/^ *fluids[^(]*( \(.*\) );$/\1/p' system/includeDict)
+
+
+setupRegion()
+{
+    echo "  $region"
+    for folder in 0 constant system; do
+        for file in $template/$folder/$regionType/*; do
+            sed "s/$regionType/$region/g" $file > $folder/$region/$(basename $file)
+        done
+    done
+    changeDictionary -enableFunctionEntries -region $region \
+        > log/changeDictionary.$region.logfile
+}
+
+echo -e "\nCopy files from template in folder $template"
+
+regionType=SOLID
+echo -e "\n$regionType regions:"
+for region in $solids; do
+    setupRegion
+done
+
+regionType=FLUID
+echo -e "\n$regionType regions:"
+for region in $fluids; do
+    setupRegion
+done
+
+# ----------------------------------------------------------------- end-of-file

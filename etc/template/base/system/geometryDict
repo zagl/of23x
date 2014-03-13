@@ -15,17 +15,10 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-boundingBox     2 ( ( -0.0095 -0.02 -0.02 ) ( 0.021 0.02 0.02 ) );
+boundingBox     ( ( 0 0 0 ) ( 1 1 1 ) );
 
 solids
 {
-    plate
-    {
-        elementLength   0.001;
-        conductivity    210;
-        emissivity      0.8;
-        power           1;
-    }
 }
 
 blanks
@@ -38,13 +31,6 @@ baffles
 
 rotations
 {
-    ROT1
-    {
-        elementLength   0.001;
-        radius          0.011;
-        rpm             4500;
-        axis            2 ( ( 0 -0.02 0 ) ( 0 0.02 0 ) );
-    }
 }
 
 refinements
@@ -55,11 +41,12 @@ fluids
 {
     FLUID
     {
-        insidePoints    ( );
-        rotations       ( );
-        baffles         ( );
+        insidePoints    ();
+        rotations       ();
+        baffles         ();
     }
 }
+
 
 
 // ************************************************************************* //
