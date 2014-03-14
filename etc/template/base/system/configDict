@@ -48,6 +48,8 @@ config
     {
         model           fvDOM;
         frequency       20;
+        nPhi            1;
+        nTheta          2;
     }
 
     #include "geometryDict"

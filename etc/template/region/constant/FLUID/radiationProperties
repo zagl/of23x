@@ -17,17 +17,17 @@ FoamFile
 
 #include        "./system/includeDict"
 
-radiationModel  $config.radiation.model;
+radiationModel  $:config.radiation.model;
 
 fvDOMCoeffs
 {
-    nPhi 1;
-    nTheta 2;
-    convergence 0.001;
-    maxIter 5;
+    nPhi            $:config.radiation.nPhi;
+    nTheta          $:config.radiation.nTheta;
+    convergence     0.001;
+    maxIter         5;
 } 
 
-solverFreq      $config.radiation.frequency;
+solverFreq      $:config.radiation.frequency;
 
 absorptionEmissionModel none;
 
