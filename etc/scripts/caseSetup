@@ -17,7 +17,7 @@ setupRegion()
         > log/changeDictionary.$region.logfile
 }
 
-echo -e "\nCopy files from template in folder $template"
+echo -e "\nCopy files from template folder $template"
 
 regionType=SOLID
 echo -e "\n$regionType regions:"

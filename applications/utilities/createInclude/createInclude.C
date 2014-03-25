@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    updateConfig
+    createInclude
 
 Description
     Writes configuration parameters to includeDict.
@@ -35,6 +35,7 @@ Description
 #include "vectorField.H"
 #include "IFstream.H"
 #include "Tuple2.H"
+#include "Pair.H"
 #include "cellSet.H"
 #include "HashTable.H"
 #include "dictionary.H"
@@ -43,6 +44,12 @@ Description
 #include "unitConversion.H"
 
 using namespace Foam;
+
+typedef Pair<word> wordPair;
+typedef List<Pair<word> > wordPairList;
+
+typedef Tuple2<label, scalar> Level;
+typedef List<Tuple2<label, scalar> > levelList;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,7 +83,24 @@ int main(int argc, char *argv[])
     const dictionary& solidsDict = configDict.subDict("solids");
     const dictionary& fluidsDict = configDict.subDict("fluids");
     const dictionary& rotationsDict = configDict.subDict("rotations");
+    const dictionary& contactsDict = configDict.subDict("contacts");
     const dictionary& domainDict = configDict.subDict("domain");
+
+    wordList fluids;
+    forAllConstIter(dictionary, fluidsDict, iter)
+    {
+        fluids.append( iter().keyword() );
+    }
+
+    wordList solids;
+    forAllConstIter(dictionary, solidsDict, iter)
+    {
+        solids.append( iter().keyword() );
+    }
+
+    wordList regions;
+    regions.append(fluids);
+    regions.append(solids);
 
 /*---------------------------------------------------------------------------*\
                                     blockMesh
@@ -210,8 +234,8 @@ int main(int argc, char *argv[])
             if ( geomType == "refinements" )
             {
                 dictionary region;
-                List<Tuple2<label, scalar> > levels(1);
-                levels[0] = Tuple2<label, scalar>(1.0, refinementLevel);
+                levelList levels(1);
+                levels[0] = Level(1.0, refinementLevel);
                 region.add("levels", levels);
                 region.add("mode", "inside");
                 refinementRegions.add(name, region);
@@ -219,7 +243,7 @@ int main(int argc, char *argv[])
             else
             {
                 dictionary surface;
-                labelList level(2, refinementLevel);
+                Pair<label> level(2, refinementLevel);
                 surface.add("level", level);
                 if ( geomType == "solids" )
                 {
@@ -250,6 +274,34 @@ int main(int argc, char *argv[])
 \*---------------------------------------------------------------------------*/
 
     dictionary changeDictionary;
+    dictionary changeDictRegions;
+
+    forAll( regions, i )
+    {
+        dictionary emptyDict;
+        changeDictRegions.add(regions[i], emptyDict);
+    }
+
+    wordList groups;
+    dictionary contact;
+    contact.add("type", "wall");
+    contact.add("inGroups", groups);
+
+    dictionary isolationsDict = contactsDict.subDict("isolations");
+    wordPairList isolationPairs = isolationsDict.lookup("pairs");
+    forAll( isolationPairs, i )
+    {
+        wordPair isolationPair = isolationPairs[i];
+        for ( int j=0; j<2; j++ )
+        {
+            word first = isolationPair[j];
+            word second = isolationPair.other(first);
+            word contactName = first + "_to_" + second;
+
+            changeDictRegions.subDict(first).add(contactName, contact);
+        }
+    }
+    changeDictionary.add("regions", changeDictRegions);
 
     word radiation = configDict.subDict("radiation").lookup("model");
     word coupledWallType =
@@ -275,6 +327,23 @@ int main(int argc, char *argv[])
     config.add("changeDictionary", changeDictionary);
 
 /*---------------------------------------------------------------------------*\
+                                   fields
+\*---------------------------------------------------------------------------*/
+
+    dictionary boundaryFields;
+    dictionary fieldT;
+
+    forAll( regions, i )
+    {
+        dictionary emptyDict;
+        fieldT.add(regions[i], emptyDict);
+    }
+
+    boundaryFields.add("T", fieldT);
+
+    config.add("boundaryFields", boundaryFields);
+
+/*---------------------------------------------------------------------------*\
                                   fvOptions
 \*---------------------------------------------------------------------------*/
     dictionary fvOptions;
@@ -288,7 +357,7 @@ int main(int argc, char *argv[])
 
         if ( power > 0 ) 
         {
-            Tuple2<scalar, scalar> h(power, 0);
+            Pair<scalar> h(power, 0.0);
             dictionary injectionRateSuSp;
             injectionRateSuSp.add("h", h);
 
@@ -337,7 +406,6 @@ int main(int argc, char *argv[])
                                   topoSet
 \*---------------------------------------------------------------------------*/
 
-    dictionary topoSet;
     List<dictionary> actions;
     forAllConstIter(dictionary, rotationsDict, iter)
     {
@@ -371,6 +439,8 @@ int main(int argc, char *argv[])
         actions.append(action);
 
     }
+    
+    dictionary topoSet;
     topoSet.add("actions", actions);
     config.add("topoSet", topoSet);
 
@@ -379,18 +449,6 @@ int main(int argc, char *argv[])
 \*---------------------------------------------------------------------------*/
 
     dictionary regionProperties;
-    wordList fluids;
-    forAllConstIter(dictionary, fluidsDict, iter)
-    {
-        fluids.append( iter().keyword() );
-    }
-
-    wordList solids;
-    forAllConstIter(dictionary, solidsDict, iter)
-    {
-        solids.append( iter().keyword() );
-    }
-
     regionProperties.set("fluids", fluids);
     regionProperties.set("solids", solids);
     config.add("regionProperties", regionProperties);
@@ -399,7 +457,6 @@ int main(int argc, char *argv[])
                                   modifyRegions
 \*---------------------------------------------------------------------------*/
 
-    dictionary modifyRegions;
     word defaultCellZone;
     List<dictionary> cellZones;
 
@@ -423,6 +480,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    dictionary modifyRegions;
     modifyRegions.set("defaultCellZone", defaultCellZone);
     modifyRegions.set("cellZones", cellZones);
     config.add("modifyRegions", modifyRegions);

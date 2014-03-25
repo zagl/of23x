@@ -34,11 +34,13 @@ dictionaryReplacement
         {
             inGroups        (open);
         }
-        
+
         $:config.changeDictionary.outlet
         {
             inGroups        (outlet);
         }
+
+        $:config.changeDictionary.regions.FLUID
     }
 }
 

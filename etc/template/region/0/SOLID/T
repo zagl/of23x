@@ -47,6 +47,8 @@ boundaryField
         QrNbr       Qr;
         value       $internalField; 
     }
+
+    $:config.boundaryFields.T.SOLID
 }
 
 #remove config;

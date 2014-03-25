@@ -32,6 +32,8 @@ dictionaryReplacement
         {
             inGroups        (coupledWall);
         }
+
+        $:config.changeDictionary.regions.SOLID
     }
 }
 
