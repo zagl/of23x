@@ -30,7 +30,7 @@ boundaryField
 
     coupledWall
     {
-        type        compressible::myturbulentTemperatureCoupledBaffleMixed;
+        type        compressible::turbulentTemperatureCoupledBaffleMixed;
         Tnbr        T;
         kappa       solidThermo;
         kappaName   none;
@@ -45,7 +45,7 @@ boundaryField
         kappaName   none;
         Qr          none;
         QrNbr       Qr;
-        value       $internalField; 
+        value       $internalField;
     }
 
     $:config.boundaryFields.T.SOLID

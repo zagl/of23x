@@ -283,9 +283,9 @@ int main(int argc, char *argv[])
     }
 
     wordList groups;
-    dictionary contact;
-    contact.add("type", "wall");
-    contact.add("inGroups", groups);
+    dictionary isolation;
+    isolation.add("type", "wall");
+    isolation.add("inGroups", groups);
 
     dictionary isolationsDict = contactsDict.subDict("isolations");
     wordPairList isolationPairs = isolationsDict.lookup("pairs");
@@ -294,11 +294,12 @@ int main(int argc, char *argv[])
         wordPair isolationPair = isolationPairs[i];
         for ( int j=0; j<2; j++ )
         {
+            int k = (j+1)%2;
             word first = isolationPair[j];
-            word second = isolationPair.other(first);
+            word second = isolationPair[k];
             word contactName = first + "_to_" + second;
 
-            changeDictRegions.subDict(first).add(contactName, contact);
+            changeDictRegions.subDict(first).add(contactName, isolation);
         }
     }
     changeDictionary.add("regions", changeDictRegions);
@@ -337,6 +338,60 @@ int main(int argc, char *argv[])
     {
         dictionary emptyDict;
         fieldT.add(regions[i], emptyDict);
+    }
+
+    dictionary boundaryField;
+    boundaryField.add("type", "compressible::myturbulentTemperatureCoupledBaffleMixed");
+    boundaryField.add("Tnbr", "T");
+    boundaryField.add("kappa", "solidThermo");
+    boundaryField.add("kappaName", "none");
+    boundaryField.add("value", word("uniform $:config.temperature.start"));
+
+    dictionary resistancesDict = contactsDict.subDict("resistances");
+    wordPairList resistancePairs = resistancesDict.lookup("pairs");
+    scalarList resistances = resistancesDict.lookup("resistances");
+    forAll( resistancePairs, i )
+    {
+        wordPair resistancePair = resistancePairs[i];
+        scalar resistance = resistances[i];
+
+        dictionary boundary = boundaryField;
+        boundary.add("resistance", resistance);
+
+        for ( int j=0; j<2; j++ )
+        {
+            int k = (j+1)%2;
+            word first = resistancePair[j];
+            word second = resistancePair[k];
+            word contactName = first + "_to_" + second;
+
+            fieldT.subDict(first).add(contactName, boundary);
+        }
+    }
+
+    dictionary thermalLayersDict = contactsDict.subDict("thermalLayers");
+    wordPairList thermalLayerPairs = thermalLayersDict.lookup("pairs");
+    scalarListList thicknessLayers = thermalLayersDict.lookup("thicknessLayers");
+    scalarListList kappaLayers = thermalLayersDict.lookup("kappaLayers");
+    forAll( thermalLayerPairs, i )
+    {
+        wordPair thermalLayerPair = thermalLayerPairs[i];
+        scalarList thicknessLayer = thicknessLayers[i];
+        scalarList kappaLayer = kappaLayers[i];
+
+        dictionary boundary = boundaryField;
+        boundary.add("thicknessLayers", thicknessLayer);
+        boundary.add("kappaLayers", kappaLayer);
+
+        for ( int j=0; j<2; j++ )
+        {
+            int k = (j+1)%2;
+            word first = thermalLayerPair[j];
+            word second = thermalLayerPair[k];
+            word contactName = first + "_to_" + second;
+
+            fieldT.subDict(first).add(contactName, boundary);
+        }
     }
 
     boundaryFields.add("T", fieldT);
@@ -501,4 +556,5 @@ int main(int argc, char *argv[])
 
 
 // ************************************************************************* //
+
 
