@@ -15,10 +15,31 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-boundingBox     ( ( 0 0 0 ) ( 1 1 1 ) );
+boundingBox     2 ( ( -0.0008 -0.0125 -0.0125 ) ( 0.0026 0.0125 0.0125 ) );
 
 solids
 {
+    platine
+    {
+        elementLength   0.0008;
+        conductivity    210;
+        emissivity      0.8;
+        power           0;
+    }
+    ledc
+    {
+        elementLength   0.0008;
+        conductivity    210;
+        emissivity      0.8;
+        power           0;
+    }
+    ledj
+    {
+        elementLength   0.0008;
+        conductivity    210;
+        emissivity      0.8;
+        power           1;
+    }
 }
 
 blanks
@@ -60,12 +81,11 @@ fluids
 {
     FLUID
     {
-        insidePoints    ();
-        rotations       ();
-        baffles         ();
+        insidePoints    ( );
+        rotations       ( );
+        baffles         ( );
     }
 }
-
 
 
 // ************************************************************************* //

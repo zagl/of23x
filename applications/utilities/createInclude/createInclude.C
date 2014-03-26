@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
     boundaryField.add("Tnbr", "T");
     boundaryField.add("kappa", "solidThermo");
     boundaryField.add("kappaName", "none");
-    boundaryField.add("value", word("uniform $:config.temperature.start"));
+    boundaryField.add("value", word("uniform $.....temperature.start"));
 
     dictionary resistancesDict = contactsDict.subDict("resistances");
     wordPairList resistancePairs = resistancesDict.lookup("pairs");
