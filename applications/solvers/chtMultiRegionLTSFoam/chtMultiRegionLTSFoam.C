@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
 
     #include "createFluidMeshes.H"
     #include "createSolidMeshes.H"
-    
+
     #include "readTimeControls.H"
     #include "readSolidTimeControls.H"
 
     #include "setFluidInitialrDeltaT.H"
     #include "setSolidInitialrDeltaT.H"
-    
+
     #include "createFluidFields.H"
     #include "createSolidFields.H"
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 
         #include "setFluidrDeltaT.H"
         #include "setSolidrDeltaT.H"
-        
+
         if (nOuterCorr != 1)
         {
             forAll(fluidRegions, i)
@@ -119,37 +119,11 @@ int main(int argc, char *argv[])
 
             forAll(solidRegions, i)
             {
-                #include "readSolidSubcycleControls.H"
                 Info<< "\nSolving for solid region "
                     << solidRegions[i].name() << endl;
-                Info<< "\nrunTime.deltaT().value() "
-                    << runTime.deltaT().value() << endl;   
-                Info<< "\nmaxDeltaTForSolidRegion "
-                    << maxDeltaTForSolidRegion << endl; 
-                    
-                if ( runTime.deltaT().value() > maxDeltaTForSolidRegion )
-                {
-                    int numberOfSubCycles = ceil(runTime.deltaT().value()/maxDeltaTForSolidRegion);
-                    Info<< "\nNeed subcycles "
-                        << numberOfSubCycles << endl;
-                    Foam::TimeState MyNewSubCycleTimeState = runTime.subCycle(numberOfSubCycles);
-                    for (int subCycleCounter=1; subCycleCounter<=numberOfSubCycles; subCycleCounter++)
-                    {
-                        Info<< "\nSubCycle "
-                        << subCycleCounter << endl;
-                        #include "setRegionSolidFields.H"
-                        #include "readSolidMultiRegionPIMPLEControls.H"
-                        #include "solveSolid.H"
-                        runTime++;
-                    }
-                    runTime.endSubCycle();
-                }
-                else // business as usual
-                {
-                    #include "setRegionSolidFields.H"
-                    #include "readSolidMultiRegionPIMPLEControls.H"
-                    #include "solveSolid.H"
-                }
+                #include "setRegionSolidFields.H"
+                #include "readSolidMultiRegionPIMPLEControls.H"
+                #include "solveSolid.H"
             }
 
         }

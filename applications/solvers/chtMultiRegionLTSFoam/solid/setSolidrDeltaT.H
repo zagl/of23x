@@ -5,7 +5,7 @@
     (
         pimpleDict.lookupOrDefault<scalar>("maxCo", 0.8)
     );
-    
+
     scalar maxDi
     (
         pimpleDict.lookupOrDefault<scalar>("maxDi", 10.0)
@@ -25,12 +25,12 @@
     (
         pimpleDict.lookupOrDefault<scalar>("maxDeltaT", GREAT)
     );
-    
+
     forAll(solidRegions, i)
     {
         fvMesh& mesh = solidRegions[i];
         const solidThermo& thermo = thermos[i];
-        
+
         tmp<volScalarField> magKappa;
         if (thermo.isotropic())
         {
@@ -40,6 +40,8 @@
         {
             magKappa = mag(thermo.Kappa());
         }
+        const volScalarField& kappa = magKappa();
+
         tmp<volScalarField> tcp = thermo.Cp();
         const volScalarField& cp = tcp();
 
@@ -47,35 +49,21 @@
         const volScalarField& rho = trho();
 
         volScalarField rDeltaT0("rDeltaT0", rDeltaTSolid[i]);
-        const volScalarField& kappa = magKappa();
-        
-        Info<< mesh.surfaceInterpolation::deltaCoeffs().dimensions();
-        Info<< fvc::interpolate(kappa);
-        Info<< fvc::interpolate(cp*rho);
 
         surfaceScalarField kapparhoCpbyDelta
         (
             mesh.surfaceInterpolation::deltaCoeffs()
+          * mesh.surfaceInterpolation::deltaCoeffs()
           * fvc::interpolate(kappa)
           / fvc::interpolate(cp*rho)
           / maxDi
         );
-        
-//        Info<< kapparhoCpbyDelta;
-        Info<< kapparhoCpbyDelta;
-        Info<< fvc::surfaceSum(kapparhoCpbyDelta)().dimensions();
+
         // Set the reciprocal time-step from the local Courant number
         rDeltaTSolid[i].dimensionedInternalField() = max
         (
             1/dimensionedScalar("maxDeltaT", dimTime, maxDeltaT),
-//            fvc::surfaceSum(mag(phiSolid[i]))().dimensionedInternalField()
-//           /((2*maxCo)*mesh.V()*rhoSolid[i].dimensionedInternalField())
             fvc::surfaceSum(kapparhoCpbyDelta)().dimensionedInternalField()
-//            
-//            mesh.surfaceInterpolation::deltaCoeffs().dimensionedInternalField()
-
-//          / maxDi
-//          / fvc::interpolate(cp*rho)
         );
 
         // Update tho boundary values of the reciprocal time-step
