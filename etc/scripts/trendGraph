@@ -2,12 +2,14 @@
 
 #tail -n+1 -f log/cht | grep --line-buffered -A2 'ledj' | grep --line-buffered 'Min/max' | awk -W interactive '{print $10 }' | trend - 1000 -G 1x100 -SgFvd -geometry 800x480 -Lledj -tTemperature
 
-mkfifo fifo
+fifo=/tmp/$(date | md5sum | head -c8)
 
-tail -n+1 -f log/cht | grep --line-buffered -A2 'ledj' | \
+mkfifo $fifo
+
+tail -n+1 -f log/cht | grep --line-buffered -A2 "$1" | \
     grep --line-buffered 'Min/max' | awk -W interactive '{print $10 }' \
-    > fifo &
-    
-trend fifo 1000 -G 1x100 -SgFvd -geometry 800x480 -Lledj -tTemperature
-    
-rm fifo
+    > $fifo &
+
+trend $fifo 10000 -G 1x100 -gvd -geometry 800x480 -L"$1" -tTemperature
+
+rm $fifo
