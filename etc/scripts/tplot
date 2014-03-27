@@ -1,0 +1,42 @@
+#!/bin/bash
+
+lastplot=" \"< grep -A2 '$1' log/cht* | grep 'Min/max' \
+| awk '{print \$10 }'\" using 0:(\$1-273.15) with lines title \"$1\""
+
+shift
+
+plot=""
+
+for arg in $@; do
+    plot="\"< grep -A2 '$arg' log/cht* | grep 'Min/max' \
+| awk '{print \$10 }'\" using 0:(\$1-273.15) with lines title \"$arg\", $plot "
+done
+
+plot="plot $plot $lastplot"
+
+runfile=/tmp/run.gp
+pltfile=/tmp/plot.gp
+
+cat >$runfile <<EOF
+replot
+pause 1
+reread
+EOF
+
+
+cat >$pltfile <<EOF
+#set title 'Temperature'
+#set terminal svg
+set xlabel "Timesteps"
+set ylabel "Temperature"
+$plot
+#plot  "< grep -A2 'case' log/cht* | grep 'Min/max' | awk '{print $10 }'" with lines title "min"
+load "$runfile"
+EOF
+
+echo
+echo "Exit with Ctrl-C"
+gnuplot $pltfile
+
+test -e $runfile && rm $runfile
+test -e $pltfile && rm $pltfile

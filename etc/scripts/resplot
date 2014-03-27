@@ -1,0 +1,29 @@
+#!/bin/bash
+
+runfile=/tmp/run.gp
+pltfile=/tmp/plot.gp
+
+cat >$runfile <<EOF
+replot
+pause 1
+reread
+EOF
+
+cat >$pltfile <<EOF
+set title '$1'
+set xlabel "Timesteps"
+set ylabel "Temperature"
+set logscale y
+plot "< grep -A3 '$1' log/cht* | grep 'Ux'  | awk '{print \$8 }'" with lines title "Ux", \
+ "< grep -A3 '$1' log/cht* | grep 'Uy'  | awk '{print \$8 }'" with lines title "Uy", \
+ "< grep -A3 '$1' log/cht* | grep 'Uz'  | awk '{print \$8 }'" with lines title "Uz", \
+ "< grep -A6 '$1' log/cht* | grep 'p_rgh'  | awk '{print \$8 }'" with lines title "p_rgh"
+load "$runfile"
+EOF
+
+echo
+echo "Exit with Ctrl-C"
+gnuplot $pltfile
+
+test -e $runfile && rm $runfile
+test -e $pltfile && rm $pltfile
