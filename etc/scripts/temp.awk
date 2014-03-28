@@ -1,9 +1,9 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-    for (i=2; i < ARGC; i++)
+    for (i=1; i < ARGC; i++)
         regions[i] = ARGV[i]
-    ARGC = 2
+    ARGC = 1
     isRegion = 0
 }
 

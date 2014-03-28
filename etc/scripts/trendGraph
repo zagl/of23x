@@ -6,7 +6,7 @@ fifo=/tmp/$(date | md5sum | head -c8)
 
 mkfifo $fifo
 
-tail -n+1 -f log/cht | grep --line-buffered -A2 "$1" | \
+tailf log/cht | grep --line-buffered -A2 "$1" | \
     grep --line-buffered 'Min/max' | awk -W interactive '{print $10 }' \
     > $fifo &
 

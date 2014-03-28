@@ -1,9 +1,9 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-    for (i=2; i < ARGC; i++)
+    for (i=1; i < ARGC; i++)
         regions[i] = ARGV[i]
-    ARGC = 2
+    ARGC = 1
     isRegion = 0
 }
 
@@ -25,7 +25,7 @@ BEGIN {
         || $0 ~ /Solving for Uy/ \
         || $0 ~ /Solving for Uz/) )
     {
-        residual = $12
+        residual = $8
         sub(/,/, "", residual)
         print log(residual)/log(10)
     }
