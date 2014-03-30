@@ -1,26 +1,132 @@
-Solving for fluid region FLUID
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 2.2.x-37940e0cd1ae
+Exec   : /home/sergkuznet/OpenFOAM/OpenFOAM-2.2.x/platforms/linux64GccDPOpt/bin/chtMultiRegionSimpleFoam
+Date   : Dec 11 2013
+Time   : 16:43:49
+Host   : "ubuntu"
+PID    : 8592
+Case   : /home/sergkuznet/OpenFOAM/run/fin2R_initial
+nProcs : 1
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Disallowing user-supplied system call operations
 
-Solving for solid region solid1
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
 
-Solving for solid region solid2
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+Create fluid mesh for region fluidDomain for time = 0
 
-Solving for fluid region FLUID
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+Create solid mesh for region solidDomain for time = 0
 
-Solving for solid region solid1
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+Create solid mesh for region solidDomain2 for time = 0
 
-Solving for solid region solid2
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+*** Reading fluid mesh thermophysical properties for region fluidDomain
 
-Solving for fluid region FLUID
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+    Adding to thermoFluid
 
-Solving for solid region solid1
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+Selecting thermodynamics package 
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
 
-Solving for solid region solid2
-Min 2 3 4 5 6 7 8 9 293.15 11 12 13 14 15 16 17 18 298.15
+    Adding to rhoFluid
+
+    Adding to UFluid
+
+    Adding to phiFluid
+
+    Adding to gFluid
+
+    Adding to turbulence
+
+Selecting turbulence model type laminar
+    Adding to ghFluid
+
+    Adding to ghfFluid
+
+Radiation model not active: radiationProperties not found
+Selecting radiationModel none
+    Adding fvOptions
+
+No finite volume options present
+
+*** Reading solid mesh thermophysical properties for region solidDomain
+
+    Adding to thermos
+
+Selecting thermodynamics package 
+{
+    type            heSolidThermo;
+    mixture         pureMixture;
+    transport       constIso;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+    Adding to radiations
+
+Radiation model not active: radiationProperties not found
+Selecting radiationModel none
+    Adding fvOptions
+
+No finite volume options present
+
+Time = 1
+
+
+Solving for fluid region fluidDomain
+DILUPBiCG:  Solving for Ux, Initial residual = 1, Final residual = 0.041964, No Iterations 1
+DILUPBiCG:  Solving for Uy, Initial residual = 1, Final residual = 0.0001767454, No Iterations 2
+DILUPBiCG:  Solving for Uz, Initial residual = 1, Final residual = 0.0003058668, No Iterations 2
+DILUPBiCG:  Solving for h, Initial residual = 1, Final residual = 0.02843725, No Iterations 1
+Min/max T:299.9999 2035.089
+GAMG:  Solving for p_rgh, Initial residual = 0.8476081, Final residual = 0.003588793, No Iterations 11
+time step continuity errors : sum local = 0.7781759, global = -0.07076251, cumulative = -0.07076251
+Min/max rho:2 2
+
+Solving for solid region solidDomain
+DICPCG:  Solving for h, Initial residual = 1, Final residual = 0.05509895, No Iterations 1
+Min/max T:min(T) [0 0 0 1 0 0 0] 300 max(T) [0 0 0 1 0 0 0] 301
+ExecutionTime = 1.39 s  ClockTime = 1 s
+
+Solving for solid region solidDomain2
+DICPCG:  Solving for h, Initial residual = 1, Final residual = 0.05509895, No Iterations 1
+Min/max T:min(T) [0 0 0 1 0 0 0] 340 max(T) [0 0 0 1 0 0 0] 341
+ExecutionTime = 1.39 s  ClockTime = 1 s
+
+Time = 2
+
+
+Solving for fluid region fluidDomain
+DILUPBiCG:  Solving for Ux, Initial residual = 0.3551669, Final residual = 0.003849144, No Iterations 1
+DILUPBiCG:  Solving for Uy, Initial residual = 0.05855359, Final residual = 0.001012355, No Iterations 1
+DILUPBiCG:  Solving for Uz, Initial residual = 0.02422332, Final residual = 0.0003484752, No Iterations 1
+DILUPBiCG:  Solving for h, Initial residual = 0.5433119, Final residual = 0.007134343, No Iterations 1
+Min/max T:264.6221 2035.089
+GAMG:  Solving for p_rgh, Initial residual = 0.04481994, Final residual = 0.0004256873, No Iterations 18
+time step continuity errors : sum local = 3.010856, global = 1.085556, cumulative = 1.014794
+Min/max rho:2 2
+
+Solving for solid region solidDomain
+DICPCG:  Solving for h, Initial residual = 0.189656, Final residual = 0.014255, No Iterations 1
+Min/max T:min(T) [0 0 0 1 0 0 0] 305 max(T) [0 0 0 1 0 0 0] 306
+ExecutionTime = 1.92 s  ClockTime = 2 s
+
+Solving for solid region solidDomain2
+DICPCG:  Solving for h, Initial residual = 0.189656, Final residual = 0.014255, No Iterations 1
+Min/max T:min(T) [0 0 0 1 0 0 0] 345 max(T) [0 0 0 1 0 0 0] 346
+ExecutionTime = 1.92 s  ClockTime = 2 s
