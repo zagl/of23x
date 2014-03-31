@@ -1,42 +1,37 @@
 #!/bin/bash
 
-lastplot=" \"< grep -A2 '$1' log/cht* | grep 'Min/max' \
-| awk '{print \$10 }'\" using 0:(\$1-273.15) with lines title \"$1\""
+log="$1"
+fifo=/tmp/tplot-$(date | md5sum | head -c8)
 
-shift
+if [ "$1" = "-h" ]; then
+    echo "Usage: $(basename $0) [OPTIONS] LOGFILE" 2>&1
+    echo "" 2>&1
+    echo "Options:" 2>&1
+    echo "    -h  Print help" 2>&1
+    echo "" 2>&1
+    exit 0
+fi
 
-plot=""
+old=$(du -b "$log")
+sleep 0.1
+new=$(du -b "$log")
 
-for arg in $@; do
-    plot="\"< grep -A2 '$arg' log/cht* | grep 'Min/max' \
-| awk '{print \$10 }'\" using 0:(\$1-273.15) with lines title \"$arg\", $plot "
-done
+offset=5000
+[ "$old" = "$new" ] && offset=0
 
-plot="plot $plot $lastplot"
+hist=$(awk '/^Time =/{n++} END{print n+'$offset'}' "$log")
+labels=$(awk '/^Create solid/{printf $6" max,"$6" min,"} /^\*/{exit 0}' "$log")
+nSolids=$(awk '/^Create solid/{n++} /^\*/{exit 0} END{print n*2}' "$log")
 
-runfile=/tmp/run.gp
-pltfile=/tmp/plot.gp
+mkfifo $fifo
 
-cat >$runfile <<EOF
-replot
-pause 1
-reread
-EOF
+tail -n+1 -f "$log" | awk -W interactive \
+    '/^Min\/max T:m/ {print $10-273.15, $19-273.15}' > $fifo &
+pipe=$!
+trend $fifo $hist -p 5 -G 1x100 -gvd -geometry 800x480 \
+    -L"$labels" -c${nSolids}a -t"Temperature in degC [0:$hist]"
 
+kill $pipe
+rm $fifo
 
-cat >$pltfile <<EOF
-#set title 'Temperature'
-#set terminal svg
-set xlabel "Timesteps"
-set ylabel "Temperature"
-$plot
-#plot  "< grep -A2 'case' log/cht* | grep 'Min/max' | awk '{print $10 }'" with lines title "min"
-load "$runfile"
-EOF
-
-echo
-echo "Exit with Ctrl-C"
-gnuplot $pltfile
-
-test -e $runfile && rm $runfile
-test -e $pltfile && rm $pltfile
+exit 0
