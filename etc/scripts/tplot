@@ -16,10 +16,10 @@ old=$(du -b "$log")
 sleep 0.1
 new=$(du -b "$log")
 
-offset=5000
-[ "$old" = "$new" ] && offset=0
+offset=2
+[ "$old" = "$new" ] && offset=1
 
-hist=$(awk '/^Time =/{n++} END{print n+'$offset'}' "$log")
+hist=$(awk '/^Time =/{n++} END{print n*'$offset'}' "$log")
 labels=$(awk '/^Create solid/{printf $6" max,"$6" min,"} /^\*/{exit 0}' "$log")
 nSolids=$(awk '/^Create solid/{n++} /^\*/{exit 0} END{print n*2}' "$log")
 

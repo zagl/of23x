@@ -34,11 +34,18 @@ boundaryField
         value       uniform (0 0 0);
     }
 
-    outlet
+    top
     {
         type        inletOutlet;
         inletValue  uniform (0 0 0);
         value       uniform (0 0 0);
+    }
+
+    outlet
+    {
+        type        inletOutlet;
+        inletValue  uniform (0 0 0);
+        value       $internalField;
     }
 
     inlet

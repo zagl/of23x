@@ -275,6 +275,7 @@ int main(int argc, char *argv[])
 
     dictionary changeDictionary;
     dictionary changeDictRegions;
+    dictionary changeDictGlobal;
 
     forAll( regions, i )
     {
@@ -302,29 +303,87 @@ int main(int argc, char *argv[])
             changeDictRegions.subDict(first).add(contactName, isolation);
         }
     }
-    changeDictionary.add("regions", changeDictRegions);
 
     word radiation = configDict.subDict("radiation").lookup("model");
-    word coupledWallType =
+    word coupledWallGroup =
         radiation == "none" ? "coupledWall" : "coupledRadiationWall";
-    changeDictionary.add("coupledWallType", coupledWallType);
+    changeDictionary.add("coupledWallGroup", coupledWallGroup);
 
-
-    vector gravity = configDict.subDict("convection").lookup("gravity");
-    word outlet = "noOutlet";
+    bool isOpen = readBool(configDict.subDict("convection").lookup("open"));
+    word exteriorWallGroup = isOpen == true ? "open" : "";
+    word exteriorWallType = isOpen == true ? "patch" : "slip";
+    changeDictionary.add("exteriorWallGroup", exteriorWallGroup);
+    changeDictionary.add("exteriorWallType", exteriorWallType);
     const char* componentNames[] = {"X", "Y", "Z"};
-    forAll( gravity, i )
+
+    if ( isOpen )
     {
-        if (gravity[i] < 0)
+        word ceiling;
+        vector gravity = configDict.subDict("convection").lookup("gravity");
+        forAll( gravity, i )
         {
-            outlet = "max" + word(componentNames[i]);
+            if (gravity[i] < 0)
+            {
+                ceiling = "max" + word(componentNames[i]);
+            }
+            else if (gravity[i] > 0)
+            {
+                ceiling = "min" + word(componentNames[i]);
+            }
         }
-        else if (gravity[i] > 0)
+
+        if ( ! ceiling.empty() )
         {
-            outlet = "min" + word(componentNames[i]);
+            dictionary dict;
+            wordList groups;
+            groups.append("ceiling");
+            dict.add("inGroups", groups);
+            changeDictGlobal.add(ceiling, dict);
         }
     }
-    changeDictionary.add("outlet", outlet);
+
+    vector velocity = configDict.subDict("inlet").lookup("velocity");
+    word inlet;
+    word outlet;
+    forAll( velocity, i )
+    {
+        if (velocity[i] < 0)
+        {
+            inlet = "max" + word(componentNames[i]);
+            outlet = "min" + word(componentNames[i]);
+        }
+        else if (velocity[i] > 0)
+        {
+            inlet = "min" + word(componentNames[i]);
+            outlet = "max" + word(componentNames[i]);
+        }
+    }
+
+    if ( ! inlet.empty() )
+    {
+        dictionary dict;
+        word type = "patch";
+        wordList groups;
+        groups.append("inlet");
+        dict.add("type", type);
+        dict.add("inGroups", groups);
+        changeDictGlobal.add(inlet, dict);
+    }
+
+    if ( ! outlet.empty() && ! isOpen )
+    {
+        dictionary dict;
+        word type = "patch";
+        wordList groups;
+        groups.append("outlet");
+        dict.add("type", type);
+        dict.add("inGroups", groups);
+        changeDictGlobal.add(outlet, dict);
+    }
+
+
+    changeDictionary.add("regions", changeDictRegions);
+    changeDictionary.add("global", changeDictGlobal);
     config.add("changeDictionary", changeDictionary);
 
 /*---------------------------------------------------------------------------*\
@@ -393,7 +452,6 @@ int main(int argc, char *argv[])
             fieldT.subDict(first).add(contactName, boundary);
         }
     }
-
     boundaryFields.add("T", fieldT);
 
     config.add("boundaryFields", boundaryFields);

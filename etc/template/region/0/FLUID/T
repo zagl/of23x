@@ -28,7 +28,7 @@ boundaryField
         value       $internalField;
     }
 
-    open
+    "(open|top|outlet)"
     {
         type        inletOutlet;
         inletValue  $internalField;
@@ -39,13 +39,6 @@ boundaryField
     {
         type        fixedValue;
         value       $:config.inlet.temperature;
-    }
-
-    outlet
-    {
-        type        inletOutlet;
-        inletValue  $internalField;
-        value       $internalField;
     }
 
     coupledWall
