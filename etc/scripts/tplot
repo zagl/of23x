@@ -20,7 +20,7 @@ offset=2
 [ "$old" = "$new" ] && offset=1
 
 hist=$(awk '/^Time =/{n++} END{print n*'$offset'}' "$log")
-labels=$(awk '/^Create solid/{printf $6" max,"$6" min,"} /^\*/{exit 0}' "$log")
+labels=$(awk '/^Create solid/{printf $6" min,"$6" max,"} /^\*/{exit 0}' "$log")
 nSolids=$(awk '/^Create solid/{n++} /^\*/{exit 0} END{print n*2}' "$log")
 
 mkfifo $fifo
