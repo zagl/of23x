@@ -35,6 +35,7 @@ Description
 #include "polyMesh.H"
 #include "triSurfaceSearch.H"
 #include "triSurface.H"
+#include "hexRef8.H"
 
 using namespace Foam;
 
@@ -47,7 +48,6 @@ int main(int argc, char *argv[])
     #include "addOverwriteOption.H"
 //    argList::noParallel();
     argList::validArgs.append("input surfaceFile");
-    argList::validArgs.append("tolerance");
 
 #   include "setRootCase.H"
 #   include "createTime.H"
@@ -57,9 +57,9 @@ int main(int argc, char *argv[])
 
     const bool overwrite = args.optionFound("overwrite");
     const fileName surfName = args[1];
-    const scalar tol = args.argRead<scalar>(2);
-    
+
     triSurface surf(runTime.constantPath()/"triSurface"/surfName);   
+    const vectorField& normals = surf.faceNormals();
 
     pointField points = mesh.points();
     labelList edgeLabels(mesh.nEdges());
@@ -68,95 +68,135 @@ int main(int argc, char *argv[])
         edgeLabels[i] = i;
     }
     const edgeList edges = mesh.edges();
-    
-    
+
     triSurfaceSearch querySurf(surf);
     const indexedOctree<treeDataTriSurface>& tree = querySurf.tree();
-    
+
     Info << "Find points near triSurface" << endl << endl;
-    
+
     DynamicList<label> movePoints(mesh.nPoints());
     DynamicList<point> newLocations(mesh.nPoints());
-    forAll(edgeLabels, i)
+
+    hexRef8 meshCutter(mesh);
+    const vectorField& cellCentres = mesh.cellCentres();
+    const labelList& cellLevel = meshCutter.cellLevel(); 
+    const scalar baseLength = meshCutter.level0EdgeLength();
+
+    forAll(cellCentres, i)
     {
-        label edgeI = edgeLabels[i];
-        const edge e = edges[edgeI];
-        const point pStart = points[e.start()] ;
-        const point pEnd = points[e.end()] ;
-        const vector eVec(pEnd - pStart);
-        const scalar eMag = mag(eVec);
-        const vector n(eVec/(eMag + VSMALL));
-        const point tolVec = 1e-6*eVec;
-        const scalar eTol = tol * eMag;
-        point p0 = pStart - tolVec;
-        const point p1 = pEnd + tolVec;
-        bool foundStart = false;
-        bool foundEnd = false;
-        pointIndexHit nearHitStart;
-        pointIndexHit nearHitEnd;
-        while(true)
+        vector centre = cellCentres[i];
+        scalar localLength = baseLength / pow(2, cellLevel[i]);
+        pointIndexHit pHit = tree.findNearest(centre, pow(localLength/2, 2));
+        if ( pHit.hit() )
         {
-            pointIndexHit pHit = tree.findLine(p0, p1);
-            
-            if(pHit.hit())
+            label triangleI = pHit.index();
+            point p0 = pHit.hitPoint();
+            vector normal = normals[triangleI];
+            point pStart = p0 - normal*1e-6;
+            point pEnd = pStart - normal*(100*baseLength);
+            pointIndexHit pNext = tree.findLine(pStart, pEnd);
+            if ( pNext.hit() )
             {
-                if (mag(pHit.hitPoint() - pStart) < eTol && !foundStart)
+                point p1 = pNext.hitPoint();
+                scalar distance = mag(p0 - p1);
+                if ( distance <= localLength )
                 {
-                    foundStart = true;
+                    Info << distance << " " ;
                 }
-                else if (mag(pHit.hitPoint() - pEnd) < eTol)
-                {
-                    foundEnd = true;
-                    
-                    if (mag(pHit.hitPoint() - pEnd) < 1e-6*eMag)
-                    {
-                        // Reached end.
-                        break;
-                    }
-                }
-                p0 = pHit.hitPoint() + tolVec;
             }
-            else
-            {
-                // No hit.
-                break;
-            }
-        }
-        
-        if(foundStart)
-        {
-            pointIndexHit pHit = tree.findNearest(pStart, eTol);
-            if (pHit.hit())
-            {
-                movePoints.append(e.start());
-                newLocations.append(pHit.hitPoint());
-            }
-        }
-        if(foundEnd)
-        {
-            pointIndexHit pHit = tree.findNearest(pEnd, eTol);
-            if (pHit.hit())
-            {
-                movePoints.append(e.end());
-                newLocations.append(pHit.hitPoint());
-            }
+
         }
     }
-    
-    movePoints.shrink();
-    newLocations.shrink();
-    
-    Info<< "Moving " << movePoints.size() << " points"  << endl << endl;
-    
-    polyTopoChange meshMod(mesh);
-    forAll(movePoints, i)
-    {
-        label movePointI = movePoints[i];
-        point newLocationI = newLocations[i];
-        
-        meshMod.modifyPoint(movePointI, newLocationI, -1, true);
-    }
-    autoPtr<mapPolyMesh> morphMap = meshMod.changeMesh(mesh, false);
+
+
+
+//    forAll(edgeLabels, i)
+//    {
+//
+//
+//        pointIndexHit pHit = tree.findNearest(pStart, eTol);
+//
+//
+//
+//
+//        label edgeI = edgeLabels[i];
+//        const edge e = edges[edgeI];
+//        const point pStart = points[e.start()] ;
+//        const point pEnd = points[e.end()] ;
+//        const vector eVec(pEnd - pStart);
+//        const scalar eMag = mag(eVec);
+//        const vector n(eVec/(eMag + VSMALL));
+//        const point tolVec = 1e-6*eVec;
+//        const scalar eTol = tol * eMag;
+//        point p0 = pStart - tolVec;
+//        const point p1 = pEnd + tolVec;
+//        bool foundStart = false;
+//        bool foundEnd = false;
+//        pointIndexHit nearHitStart;
+//        pointIndexHit nearHitEnd;
+//        while(true)
+//        {
+//            pointIndexHit pHit = tree.findLine(p0, p1);
+//
+//            if(pHit.hit())
+//            {
+//                if (mag(pHit.hitPoint() - pStart) < eTol && !foundStart)
+//                {
+//                    foundStart = true;
+//                }
+//                else if (mag(pHit.hitPoint() - pEnd) < eTol)
+//                {
+//                    foundEnd = true;
+//
+//                    if (mag(pHit.hitPoint() - pEnd) < 1e-6*eMag)
+//                    {
+//                        // Reached end.
+//                        break;
+//                    }
+//                }
+//                p0 = pHit.hitPoint() + tolVec;
+//            }
+//            else
+//            {
+//                // No hit.
+//                break;
+//            }
+//        }
+//
+//        if(foundStart)
+//        {
+//            pointIndexHit pHit = tree.findNearest(pStart, eTol);
+//            if (pHit.hit())
+//            {
+//                movePoints.append(e.start());
+//                newLocations.append(pHit.hitPoint());
+//            }
+//        }
+//        if(foundEnd)
+//        {
+//            pointIndexHit pHit = tree.findNearest(pEnd, eTol);
+//            if (pHit.hit())
+//            {
+//                movePoints.append(e.end());
+//                newLocations.append(pHit.hitPoint());
+//            }
+//        }
+//    }
+//
+//    movePoints.shrink();
+//    newLocations.shrink();
+
+    //Info<< "Moving " << movePoints.size() << " points"  << endl << endl;
+
+    //polyTopoChange meshMod(mesh);
+    //forAll(movePoints, i)
+    //{
+    //    label movePointI = movePoints[i];
+    //    point newLocationI = newLocations[i];
+
+    //    meshMod.modifyPoint(movePointI, newLocationI, -1, true);
+    //}
+    //autoPtr<mapPolyMesh> morphMap = meshMod.changeMesh(mesh, false);
 
     if (!overwrite)
     {
@@ -169,8 +209,8 @@ int main(int argc, char *argv[])
 
     Info<< "Writing morphMesh to time " << runTime.timeName() << endl << endl;
 
-    mesh.write(); 
-    
+    //mesh.write(); 
+
     Info<< "End\n" << endl;
 
     return 0;
