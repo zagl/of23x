@@ -55,10 +55,10 @@ while getopts ':hm' OPTION ; do
 done
 
 
-for dir in 0 log constant system ; do
+for dir in 0 logs constant system ; do
     if [ ! -d $dir ] ; then
         echo "Create new $dir directory"
-        if [ $dir = "0" -o $dir = "log" ]; then
+        if [ $dir = "0" -o $dir = "logs" ]; then
             mkdir $dir
         else
             cp -r $TEMPLATE/$dir $dir
@@ -72,10 +72,10 @@ for file in *.{stl,obj,vtk}{,.gz} ; do
     if $TOMM; then
         echo "Scale and move $file"
         surfaceTransformPoints -scale '(0.001 0.001 0.001)' \
-            $file $newFile > log/surfaceTransformPoints.$file.logfile
+            $file $newFile > logs/surfaceTransformPoints.$file.logfile
     else
         echo "Move $file"
-        surfaceConvert $file $newFile > log/surfaceConvert.$file.logfile
+        surfaceConvert $file $newFile > logs/surfaceConvert.$file.logfile
     fi
 
     if [ -e $newFile ] ; then
@@ -90,6 +90,6 @@ for file in *.{stl,obj,vtk}{,.gz} ; do
 done
 
 echo "Run configSetup"
-configSetup > log/configSetup.logfile
+configSetup > logs/configSetup.logfile
 
 exit $EXIT_SUCCESS

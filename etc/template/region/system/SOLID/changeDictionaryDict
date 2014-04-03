@@ -26,7 +26,7 @@ dictionaryReplacement
         }
         ".*_to_F.*"
         {
-            inGroups        ($:config.changeDictionary.coupledWallType);
+            inGroups        ($:config.changeDictionary.coupledWallGroup);
         }
         ".*_to_[^F].*"
         {

@@ -8,10 +8,10 @@ runApp()
     shift
 
     echo "Running $APP_RUN on $PWD"
-    $APP_RUN "$@" > log/$APP_NAME.log 2>&1
+    $APP_RUN "$@" > logs/$APP_NAME.log 2>&1
 }
 
-mkdir log 2> /dev/null
+mkdir logs 2> /dev/null
 cp bak/* .
 
 runApp caseInit

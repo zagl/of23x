@@ -27,18 +27,16 @@ dictionaryReplacement
 
         "F.*"
         {
-            inGroups        ($:config.changeDictionary.coupledWallType);
+            inGroups        ($:config.changeDictionary.coupledWallGroup);
         }
 
         "(min|max)."
         {
-            inGroups        (open);
+            type            $:config.changeDictionary.exteriorWallType;
+            inGroups        ( $:config.changeDictionary.exteriorWallGroup );
         }
 
-        $:config.changeDictionary.outlet
-        {
-            inGroups        (outlet);
-        }
+        $:config.changeDictionary.global
 
         $:config.changeDictionary.regions.FLUID
     }

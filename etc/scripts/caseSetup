@@ -14,7 +14,7 @@ setupRegion()
         done
     done
     changeDictionary -enableFunctionEntries -region $region \
-        > log/changeDictionary.$region.logfile
+        > logs/changeDictionary.$region.logfile
 }
 
 echo -e "\nCopy files from template folder $template"

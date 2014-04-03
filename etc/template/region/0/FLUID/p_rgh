@@ -25,6 +25,12 @@ boundaryField
         type        fixedFluxPressure;
         value       $internalField;
     }
+    
+    outlet
+    {
+        type        fixedValue;
+        value       $internalField;
+    }
 
     open
     {
