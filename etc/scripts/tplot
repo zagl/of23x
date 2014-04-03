@@ -1,28 +1,32 @@
 #!/bin/bash
 
-log="$1"
-fifo=/tmp/tplot-$(date | md5sum | head -c8)
-
-if [ "$1" = "-h" ]; then
-    echo "Usage: $(basename $0) [OPTIONS] LOGFILE" 2>&1
+usage() {
+    echo "Usage: $(basename $0) [OPTIONS] LOGFILE [HISTORY]" 2>&1
     echo "" 2>&1
     echo "Options:" 2>&1
     echo "    -h  Print help" 2>&1
     echo "" 2>&1
+}
+
+if [ "$1" = "-h" ]; then
+    usage
     exit 0
+elif [ $# -eq "0" ]; then
+    usage
+    exit 1
+elif [ $# -ge "1" ]; then
+    log="$1"
+    lsof -c cht | grep -qs $PWD/$1
+    script='/^Time =/{n++} END{ if('$?'!=0) print n;
+        else if(n<500) print n+500; else print n*2 }'
+    hist=$(awk "$script" "$log")
+    [ "$2" ] && hist=$2
 fi
 
-old=$(du -b "$log")
-sleep 0.1
-new=$(du -b "$log")
-
-offset=2
-[ "$old" = "$new" ] && offset=1
-
-hist=$(awk '/^Time =/{n++} END{print n*'$offset'}' "$log")
 labels=$(awk '/^Create solid/{printf $6" min,"$6" max,"} /^\*/{exit 0}' "$log")
 nSolids=$(awk '/^Create solid/{n++} /^\*/{exit 0} END{print n*2}' "$log")
 
+fifo=/tmp/rplot-$(date | md5sum | head -c8)
 mkfifo $fifo
 
 tail -n+1 -f "$log" | awk -W interactive \
