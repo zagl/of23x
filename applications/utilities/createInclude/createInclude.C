@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
             else
             {
                 dictionary surface;
-                Pair<label> level(2, refinementLevel);
+                Pair<label> level(refinementLevel, refinementLevel);
                 surface.add("level", level);
                 if ( geomType == "solids" )
                 {
