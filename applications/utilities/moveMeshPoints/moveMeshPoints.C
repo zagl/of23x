@@ -36,6 +36,8 @@ Description
 #include "triSurfaceSearch.H"
 #include "triSurface.H"
 #include "hexRef8.H"
+#include "cellSet.H"
+#include "plane.H"
 
 using namespace Foam;
 
@@ -58,10 +60,11 @@ int main(int argc, char *argv[])
     const bool overwrite = args.optionFound("overwrite");
     const fileName surfName = args[1];
 
-    triSurface surf(runTime.constantPath()/"triSurface"/surfName);   
+    triSurface surf(runTime.constantPath()/"triSurface"/surfName);
     const vectorField& normals = surf.faceNormals();
 
-    pointField points = mesh.points();
+    const pointField& points = mesh.points();
+    const labelListList& cellPoints = mesh.cellPoints();
     labelList edgeLabels(mesh.nEdges());
     forAll(edgeLabels, i)
     {
@@ -74,39 +77,90 @@ int main(int argc, char *argv[])
 
     Info << "Find points near triSurface" << endl << endl;
 
-    DynamicList<label> movePoints(mesh.nPoints());
     DynamicList<point> newLocations(mesh.nPoints());
+
+    List<List<point> > movePoints(mesh.nPoints());
 
     hexRef8 meshCutter(mesh);
     const vectorField& cellCentres = mesh.cellCentres();
     const labelList& cellLevel = meshCutter.cellLevel(); 
     const scalar baseLength = meshCutter.level0EdgeLength();
 
+    label outside = 0;
     forAll(cellCentres, i)
     {
         vector centre = cellCentres[i];
-        scalar localLength = baseLength / pow(2, cellLevel[i]);
-        pointIndexHit pHit = tree.findNearest(centre, pow(localLength/2, 2));
-        if ( pHit.hit() )
+        if ( tree.getVolumeType(centre) == volumeType::OUTSIDE )
         {
-            label triangleI = pHit.index();
-            point p0 = pHit.hitPoint();
-            vector normal = normals[triangleI];
-            point pStart = p0 - normal*1e-6;
-            point pEnd = pStart - normal*(100*baseLength);
-            pointIndexHit pNext = tree.findLine(pStart, pEnd);
-            if ( pNext.hit() )
+            scalar localLength = baseLength / pow(2, cellLevel[i]);
+            pointIndexHit pHit =
+                tree.findNearest(centre, pow(localLength*0.4, 2));
+            if ( pHit.hit() )
             {
-                point p1 = pNext.hitPoint();
-                scalar distance = mag(p0 - p1);
-                if ( distance <= localLength )
+                label triangleI = pHit.index();
+                point p0 = pHit.hitPoint();
+                vector normal = normals[triangleI];
+                point pStart = p0 - normal*1e-6;
+                point pEnd = pStart - normal*(100*baseLength);
+                pointIndexHit pNext = tree.findLine(pStart, pEnd);
+                if ( pNext.hit() )
                 {
-                    Info << distance << " " ;
+                    point p1 = pNext.hitPoint();
+                    scalar distance = mag(p0 - p1);
+                    if ( distance <= localLength )
+                    {
+                        labelList cPoints = cellPoints[i];
+                        point pNew = p0 - normal*distance/2;
+                        vector moveVector = pNew - centre;
+                        //vector moveVector = pStart - centre;
+                        plane triPlane(pNew, normal);
+                        forAll( cPoints, i )
+                        {
+                            label pointI = cPoints[i];
+                            point moved = points[pointI] + moveVector;
+                            point near = triPlane.nearestPoint(moved);
+                            point final = moved + (near - moved)*0.5;
+                            vector vFinal = final - points[pointI];
+
+                            movePoints[pointI].append(vFinal);
+                        }
+                    }
                 }
             }
-
         }
     }
+
+
+    polyTopoChange meshMod(mesh);
+    forAll(movePoints, i)
+    {
+        List<point>& newPoints = movePoints[i];
+        label number = newPoints.size();
+        if ( number > 0 )
+        {
+            scalar minMag = GREAT;
+            label smallest;
+            forAll( newPoints, pointI )
+            {
+                vector v = newPoints[pointI];
+                if( mag(v) < minMag )
+                {
+                    smallest = pointI;
+                }
+            }
+            //point newLocation = points[i] + newPoints[smallest];
+            point newLocation = vector::zero;
+            forAll( newPoints, pointI )
+            {
+                point newPoint = newPoints[pointI] + points[i];
+                newLocation += newPoint;
+            }
+            newLocation /= number;
+            Info<< "Move " << i << " to " << newLocation << nl;
+            meshMod.modifyPoint(i, newLocation, -1, true);
+        }
+    }
+    autoPtr<mapPolyMesh> morphMap = meshMod.changeMesh(mesh, false);
 
 
 
@@ -209,7 +263,7 @@ int main(int argc, char *argv[])
 
     Info<< "Writing morphMesh to time " << runTime.timeName() << endl << endl;
 
-    //mesh.write(); 
+    mesh.write(); 
 
     Info<< "End\n" << endl;
 
