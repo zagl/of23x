@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
 
     const pointField& points = mesh.points();
     const labelListList& cellPoints = mesh.cellPoints();
-    const cellShapeList& cellShapes = mesh.cellShapes();
     labelList edgeLabels(mesh.nEdges());
     forAll(edgeLabels, i)
     {
@@ -84,6 +83,7 @@ int main(int argc, char *argv[])
     DynamicList<label> movedPoints(mesh.nPoints()/4);
     PackedBoolList pointsNotMoved(mesh.nPoints(), true);
     PackedBoolList cellsNotMoved(mesh.nCells(), true);
+    PackedBoolList cellsPartlyMoved(mesh.nCells(), false);
 
     //DynamicList<point> movePoints(mesh.nPoints());
 
@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
                             {
                                 label pointI = cPoints[i];
                                 label oppPointI = cPoints[i^6];
-                                Info<< changeCell << " " << pointI << " " << oppPointI << nl;
                                 if ( pointsNotMoved[pointI] )
                                 {
                                     point final;
@@ -164,6 +163,10 @@ int main(int argc, char *argv[])
                                     newLocations[pointI] = final;
                                     pointsNotMoved[pointI] = false;
                                 }
+                                else
+                                {
+                                    cellsPartlyMoved[changeCell] = true;
+                                }
                             }
                             cellsNotMoved[changeCell] = false;
                         }
@@ -172,7 +175,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-
 
     polyTopoChange meshMod(mesh);
     forAll(movedPoints, i)
@@ -183,6 +185,32 @@ int main(int argc, char *argv[])
         meshMod.modifyPoint(pointI, newLocation, -1, true);
     }
     autoPtr<mapPolyMesh> morphMap = meshMod.changeMesh(mesh, false);
+
+    const vectorField& newCellCentres = mesh.cellCentres();
+
+    forAll( cellsPartlyMoved, cellI )
+    {
+        if ( cellsPartlyMoved[cellI] )
+        {
+            if ( tree.getVolumeType(newCellCentres[cellI]) == volumeType::OUTSIDE )
+                Info<< " " << cellI;
+        }
+    }
+
+
+    Info<< nl << nl;
+
+    forAll( cellsPartlyMoved, cellI )
+    {
+        if ( cellsPartlyMoved[cellI] )
+        {
+            if ( tree.getVolumeType(newCellCentres[cellI]) == volumeType::INSIDE )
+                Info<< " " << cellI;
+        }
+    }
+
+
+
 
     if (!overwrite)
     {
