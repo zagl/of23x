@@ -18,7 +18,7 @@ FoamFile
 #include "./system/includeDict"
 
 // Which of the steps to run
-castellatedMesh true;
+castellatedMesh false;
 snap            true;
 addLayers       false;
 
