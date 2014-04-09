@@ -37,8 +37,11 @@ Description
 #include "triSurface.H"
 #include "hexRef8.H"
 #include "cellSet.H"
+#include "cellZoneSet.H"
+#include "faceZoneSet.H"
 #include "topoSetSource.H"
-#include "plane.H"
+#include "IOobjectList.H"
+
 
 using namespace Foam;
 
@@ -49,215 +52,124 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     #include "addOverwriteOption.H"
-    argList::validArgs.append("input surfaceFile");
 
 #   include "setRootCase.H"
 #   include "createTime.H"
     runTime.functionObjects().off();
-#   include "createPolyMesh.H"
+#   include "createNamedPolyMesh.H"
     const word oldInstance = mesh.pointsInstance();
 
     const bool overwrite = args.optionFound("overwrite");
-    const fileName surfName = args[1];
 
-    triSurface surf(runTime.constantPath()/"triSurface"/surfName);
-    const vectorField& normals = surf.faceNormals();
+    const word dictName("snappyHexMeshDict");
+#   include "setSystemMeshDictionaryIO.H"
+    IOdictionary dict(dictIO);
 
-    meshSearch queryMesh(mesh);
-    triSurfaceSearch querySurf(surf);
-    const indexedOctree<treeDataTriSurface>& tree = querySurf.tree();
-
-
-    //pointField newLocations(mesh.nPoints());
-    //DynamicList<label> movedPoints(mesh.nPoints()/4);
-    //PackedBoolList pointsNotMoved(mesh.nPoints(), true);
-    //PackedBoolList cellsNotMoved(mesh.nCells(), true);
-    //PackedBoolList cellsPartlyMoved(mesh.nCells(), false);
-    //DynamicList<point> movePoints(mesh.nPoints());
+    const dictionary& geometryDict = dict.subDict("geometry");
+    const dictionary& surfacesDict = 
+        dict.subDict("castellatedMeshControls").subDict("refinementSurfaces");
 
     hexRef8 meshCutter(mesh);
     const vectorField& cellCentres = mesh.cellCentres();
-    const labelList& cellLevel = meshCutter.cellLevel(); 
+    const cellList& cells = mesh.cells();
     const scalar baseLength = meshCutter.level0EdgeLength();
-    cellSet wallCells
-    (
-        mesh, 
-        "wallCells", 
-        mesh.nCells()
-    );
+    const labelList& cellLevel = meshCutter.cellLevel(); 
 
-    forAll( cellCentres, cellI )
+    const cellZoneMesh& cellZones = mesh.cellZones();
+
+    labelHashSet facesInZones(mesh.nFaces()/10);
+
+    forAllConstIter(dictionary, geometryDict, iter)
     {
-        point cellCentre = cellCentres[cellI];
-        if ( tree.getVolumeType(cellCentre) == volumeType::OUTSIDE )
+        const fileName surfFileName = iter().keyword();
+        const word surfName = iter().dict().lookup("name");
+        const dictionary& surfaceDict = surfacesDict.subDict(surfName);
+
+        if ( surfaceDict.found("cellZone") )
         {
-            scalar localLength = baseLength / pow(2, cellLevel[cellI]);
-            pointIndexHit pHit1 =
-                tree.findNearest(cellCentre, pow(localLength*0.5, 2));
-            if ( pHit1.hit() )
+            const triSurface surf(runTime.constantPath()/"triSurface"/surfFileName);
+            const vectorField& normals = surf.faceNormals();
+            const triSurfaceSearch querySurf(surf);
+            const indexedOctree<treeDataTriSurface>& tree = querySurf.tree();
+
+            const word faceZoneName = surfaceDict.lookup("faceZone");
+            const word cellZoneName = surfaceDict.lookup("cellZone");
+
+            cellZoneSet regionCellZone
+            (
+                mesh,
+                cellZoneName,
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            );
+
+            labelList& regionCells = regionCellZone.addressing();
+
+            faceZoneSet regionFaceZone
+            (
+                mesh,
+                faceZoneName,
+                IOobject::MUST_READ,
+                IOobject::AUTO_WRITE
+            );
+
+            forAll( cellCentres, cellI )
             {
-                label triangleI = pHit1.index();
-                point nearestSurfPoint = pHit1.hitPoint();
-                vector localNormal = normals[triangleI];
-                point searchStart = nearestSurfPoint - localNormal*1e-6;
-                point searchEnd = searchStart - localNormal*(100*baseLength);
-                pointIndexHit pHit2 = tree.findLine(searchStart, searchEnd);
-                if ( pHit2.hit() )
+                if ( cellZones.whichZone(cellI) == -1 )
                 {
-                    point nextSurfPoint = pHit2.hitPoint();
-                    scalar wallThickness = mag(nextSurfPoint - nearestSurfPoint);
-                    if ( wallThickness <= localLength )
+                    point cellCentre = cellCentres[cellI];
+                    scalar localLength = baseLength / pow(2, cellLevel[cellI]);
+                    pointIndexHit pHit1 =
+                        tree.findNearest(cellCentre, pow(localLength*0.5, 2));
+                    if ( pHit1.hit() )
                     {
-                        wallCells.insert(cellI);
+                        label triangleI = pHit1.index();
+                        point nearestSurfPoint = pHit1.hitPoint();
+                        vector localNormal = normals[triangleI];
+                        point searchStart = nearestSurfPoint - localNormal*1e-6;
+                        point searchEnd = searchStart - localNormal*(100*baseLength);
+                        pointIndexHit pHit2 = tree.findLine(searchStart, searchEnd);
+                        if ( pHit2.hit() )
+                        {
+                            point nextSurfPoint = pHit2.hitPoint();
+                            scalar wallThickness = mag(nextSurfPoint - nearestSurfPoint);
+                            if ( wallThickness <= localLength*1.2 )
+                            {
+                                regionCells.append(cellI);
+                            }
+                        }
                     }
                 }
             }
+
+            regionCellZone.updateSet();
+            regionCellZone.write();
+
+            labelList nFaceCells(mesh.nFaces(), 0);
+            forAll( regionCells, i )
+            {
+                label cellI = regionCells[i];
+                const cell& faces = cells[cellI];
+                forAll( faces, i )
+                {
+                    nFaceCells[faces[i]]++;
+                }
+            }
+
+            DynamicList<label> regionFaces;
+            forAll( nFaceCells, faceI )
+            {
+                if ( nFaceCells[faceI] == 1 && ! facesInZones[faceI] )
+                {
+                    regionFaces.append(faceI);
+                    facesInZones.insert(faceI);
+                }
+            }
+            regionFaceZone.addressing().transfer(regionFaces);
+            regionFaceZone.updateSet();
+            regionFaceZone.write();
         }
     }
-
-
-    wallCells.write();
-
-    topoSet regionSet
-    (
-        mesh,
-        "cellZoneSet",
-        "winkel"
-    );
-
-
-    //label outside = 0;
-    //forAll(cellCentres, i)
-    //{
-    //    vector centre = cellCentres[i];
-    //    if ( tree.getVolumeType(centre) == volumeType::OUTSIDE )
-    //    {
-    //        scalar localLength = baseLength / pow(2, cellLevel[i]);
-    //        pointIndexHit pHit =
-    //            tree.findNearest(centre, pow(localLength*0.5, 2));
-    //        if ( pHit.hit() )
-    //        {
-    //            label triangleI = pHit.index();
-    //            point p0 = pHit.hitPoint();
-    //            vector normal = normals[triangleI];
-    //            point pStart = p0 - normal*1e-6;
-    //            point pEnd = pStart - normal*(100*baseLength);
-    //            pointIndexHit pNext = tree.findLine(pStart, pEnd);
-    //            if ( pNext.hit() )
-    //            {
-    //                point p1 = pNext.hitPoint();
-    //                scalar distance = mag(p0 - p1);
-    //                if ( distance <= localLength )
-    //                {
-    //                    point pCentre = (p0 + p1)/2;
-    //                    label changeCell = queryMesh.findNearestCell(pCentre, i);
-    //                    point changeCentre = cellCentres[changeCell];
-
-    //                    if (
-    //                        cellsNotMoved[changeCell]
-    //                        && tree.getVolumeType(changeCentre)
-    //                           == volumeType::OUTSIDE
-    //                    )
-    //                    {
-    //                        scalar changeLength = 
-    //                            baseLength / pow(2, cellLevel[changeCell]);
-    //                        labelList cPoints = cellPoints[changeCell];
-    //                        pointIndexHit pHit =
-    //                            tree.findNearest(changeCentre, pow(changeLength, 2));
-    //                        point changeNearest = pHit.hitPoint();
-    //                        scalar changeDist = mag(changeNearest-changeCentre);
-    //                        vector changeNormal =
-    //                            (changeNearest - changeCentre)/changeDist;
-    //                        point newCentre =
-    //                            changeNearest + changeNormal*distance*0.2;
-
-    //                        vector moveVector = newCentre - changeCentre;
-    //                        plane triPlane(newCentre, changeNormal);
-
-    //                        forAll( cPoints, i )
-    //                        {
-    //                            label pointI = cPoints[i];
-    //                            label oppPointI = cPoints[i^6];
-    //                            if ( pointsNotMoved[pointI] )
-    //                            {
-    //                                point final;
-    //                                //if ( pointsNotMoved[oppPointI] )
-    //                                //{
-    //                                    point moved = points[pointI] + moveVector;
-    //                                    point near = triPlane.nearestPoint(moved);
-    //                                    final = moved + (near - moved)*0.2;
-    //                                //}
-    //                                //else
-    //                                //{
-    //                                //    point oppPoint = newLocations[oppPointI];
-    //                                //    final = 2*newCentre - oppPoint;
-    //                                //    Info<< changeCell << " ";
-    //                                //}
-    //                                movedPoints.append(pointI);
-    //                                newLocations[pointI] = final;
-    //                                pointsNotMoved[pointI] = false;
-    //                            }
-    //                            else
-    //                            {
-    //                                cellsPartlyMoved[changeCell] = true;
-    //                            }
-    //                        }
-    //                        cellsNotMoved[changeCell] = false;
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
-    //polyTopoChange meshMod(mesh);
-    //forAll(movedPoints, i)
-    //{
-    //    label pointI = movedPoints[i];
-    //    point newLocation = newLocations[pointI];
-
-    //    meshMod.modifyPoint(pointI, newLocation, -1, true);
-    //}
-    //autoPtr<mapPolyMesh> morphMap = meshMod.changeMesh(mesh, false);
-
-    //const vectorField& newCellCentres = mesh.cellCentres();
-
-    //forAll( cellsPartlyMoved, cellI )
-    //{
-    //    if ( cellsPartlyMoved[cellI] )
-    //    {
-    //        if ( tree.getVolumeType(newCellCentres[cellI]) == volumeType::OUTSIDE )
-    //            Info<< " " << cellI;
-    //    }
-    //}
-
-
-    //Info<< nl << nl;
-
-    //forAll( cellsPartlyMoved, cellI )
-    //{
-    //    if ( cellsPartlyMoved[cellI] )
-    //    {
-    //        if ( tree.getVolumeType(newCellCentres[cellI]) == volumeType::INSIDE )
-    //            Info<< " " << cellI;
-    //    }
-    //}
-
-
-
-
-    if (!overwrite)
-    {
-        runTime++;
-    }
-    if (overwrite)
-    {
-        mesh.setInstance(oldInstance);
-    }
-
-    Info<< "Writing morphMesh to time " << runTime.timeName() << endl << endl;
-
-    mesh.write(); 
 
     Info<< "End\n" << endl;
 
