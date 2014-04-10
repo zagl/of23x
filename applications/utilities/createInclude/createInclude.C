@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
     if ( isOpen )
     {
-        word ceiling;
+        string ceiling;
         vector gravity = configDict.subDict("convection").lookup("gravity");
         forAll( gravity, i )
         {
