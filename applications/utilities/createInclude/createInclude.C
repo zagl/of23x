@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
     }
 
     dictionary boundaryField;
-    boundaryField.add("type", "compressible::myturbulentTemperatureCoupledBaffleMixed");
+    boundaryField.add("type", "compressible::thermalResistanceCoupledBaffleMixed");
     boundaryField.add("Tnbr", "T");
     boundaryField.add("kappa", "solidThermo");
     boundaryField.add("kappaName", "none");

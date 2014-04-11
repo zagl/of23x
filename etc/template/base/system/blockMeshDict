@@ -124,6 +124,11 @@ boundary
             (  59  63  62  58 )
         );
     }
+    externalWall
+    {
+        type wall;
+        faces ();
+    }
 );
 
 mergePatchPairs

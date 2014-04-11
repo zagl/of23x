@@ -47,7 +47,8 @@ runTimeModifiable true;
 
 libs
 (
-    "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField.so"
+    "customBC.so"
+    "nearestTriSurfaceMeshPointSet.so"
 );
 
 

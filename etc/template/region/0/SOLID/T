@@ -48,6 +48,17 @@ boundaryField
         value       $internalField;
     }
 
+    "externalWall"
+    {
+         type       externalWallRadHeatFluxTemperature;
+         kappa      solidThermo;
+         kappaName  none;
+         h          uniform $:config.convection.h;
+         emissivity uniform $:config.solids.SOLID.emissivity;
+         Ta         $internalField;
+         value      $internalField;
+    }
+
     $:config.boundaryFields.T.SOLID
 }
 

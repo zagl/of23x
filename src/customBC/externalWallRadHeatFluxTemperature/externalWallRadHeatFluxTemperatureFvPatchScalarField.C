@@ -292,7 +292,7 @@ void Foam::externalWallRadHeatFluxTemperatureFvPatchScalarField::updateCoeffs()
                     }
                 }
             }
-            q = (Ta_ - Tp)*(1.0/h_ + totalSolidRes)
+            q = (Ta_ - Tp)/(1.0/h_ + totalSolidRes)
               + (pow4(Ta_) - pow4(Tp)) * emissivity_ * sigma;
             break;
         }
