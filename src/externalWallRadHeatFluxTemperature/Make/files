@@ -1,3 +1,0 @@
-externalWallRadHeatFluxTemperatureFvPatchScalarField.C
-
-LIB = $(FOAM_USER_LIBBIN)/externalWallRadHeatFluxTemperatureFvPatchScalarField

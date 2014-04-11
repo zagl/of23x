@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField.H"
+#include "thermalResistanceCoupledBaffleMixedFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
@@ -38,8 +38,8 @@ namespace compressible
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+thermalResistanceCoupledBaffleMixedFvPatchScalarField::
+thermalResistanceCoupledBaffleMixedFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF
@@ -59,10 +59,10 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
 }
 
 
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+thermalResistanceCoupledBaffleMixedFvPatchScalarField::
+thermalResistanceCoupledBaffleMixedFvPatchScalarField
 (
-    const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField& ptf,
+    const thermalResistanceCoupledBaffleMixedFvPatchScalarField& ptf,
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
     const fvPatchFieldMapper& mapper
@@ -78,8 +78,8 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
 {}
 
 
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+thermalResistanceCoupledBaffleMixedFvPatchScalarField::
+thermalResistanceCoupledBaffleMixedFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
@@ -98,8 +98,8 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
     {
         FatalErrorIn
         (
-            "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::"
-            "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField\n"
+            "thermalResistanceCoupledBaffleMixedFvPatchScalarField::"
+            "thermalResistanceCoupledBaffleMixedFvPatchScalarField\n"
             "(\n"
             "    const fvPatch& p,\n"
             "    const DimensionedField<scalar, volMesh>& iF,\n"
@@ -138,8 +138,8 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
     {
         FatalErrorIn
         (
-            "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::"
-            "myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField\n"
+            "thermalResistanceCoupledBaffleMixedFvPatchScalarField::"
+            "thermalResistanceCoupledBaffleMixedFvPatchScalarField\n"
             "(\n"
             " const fvPatch& p,\n"
             " const DimensionedField<scalar, volMesh>& iF,\n"
@@ -172,10 +172,10 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
 }
 
 
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::
-myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+thermalResistanceCoupledBaffleMixedFvPatchScalarField::
+thermalResistanceCoupledBaffleMixedFvPatchScalarField
 (
-    const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField& wtcsf,
+    const thermalResistanceCoupledBaffleMixedFvPatchScalarField& wtcsf,
     const DimensionedField<scalar, volMesh>& iF
 )
 :
@@ -191,7 +191,7 @@ myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
+void thermalResistanceCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
 {
     if (updated())
     {
@@ -217,10 +217,10 @@ void myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
     // Calculate the temperature by harmonic averaging
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField& nbrField =
+    const thermalResistanceCoupledBaffleMixedFvPatchScalarField& nbrField =
     refCast
     <
-        const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+        const thermalResistanceCoupledBaffleMixedFvPatchScalarField
     >
     (
         nbrPatch.lookupPatchField<volScalarField, scalar>
@@ -303,7 +303,7 @@ void myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::updateCoeffs()
 }
 
 
-void myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::write
+void thermalResistanceCoupledBaffleMixedFvPatchScalarField::write
 (
     Ostream& os
 ) const
@@ -323,7 +323,7 @@ void myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField::write
 makePatchTypeField
 (
     fvPatchScalarField,
-    myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+    thermalResistanceCoupledBaffleMixedFvPatchScalarField
 );
 
 

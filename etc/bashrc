@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function of23x
+{
+    . $HOME/OpenFOAM/OpenFOAM-2.3.x/etc/bashrc WM_NCOMPPROCS=4 WM_MPLIB=SYSTEMOPENMPI
+    . $WM_PROJECT_DIR/bin/tools/RunFunctions
+    PATH=$PATH:$HOME/OpenFOAM/scripts
+}
+
+alias of='of23x'
+
+alias blockMesh='blockMesh -dict system/blockMeshDict'
+alias preSnappy='snappyHexMesh -dict system/preSnappyHexMeshDict'
+alias preSplit='splitMeshRegions -cellZones -makeCellZones'
+alias postSplit='splitMeshRegions -cellZonesOnly'

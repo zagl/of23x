@@ -24,7 +24,7 @@ License
 Class
     Foam::
     compressible::
-    myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+    thermalResistanceCoupledBaffleMixedFvPatchScalarField
 
 Description
     Mixed boundary condition for temperature, to be used for heat-transfer
@@ -60,7 +60,7 @@ Description
     \verbatim
     myPatch
     {
-        type            compressible::myturbulentTemperatureCoupledBaffleMixed;
+        type            compressible::thermalResistanceCoupledBaffleMixed;
         Tnbr            T;
         kappa           lookup;
         KappaName       kappa;
@@ -82,12 +82,12 @@ Description
     - 'directionalSolidThermo' directionalKappa()
 
 SourceFiles
-    myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField.C
+    thermalResistanceCoupledBaffleMixedFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField_H
-#define myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField_H
+#ifndef thermalResistanceCoupledBaffleMixedFvPatchScalarField_H
+#define thermalResistanceCoupledBaffleMixedFvPatchScalarField_H
 
 #include "mixedFvPatchFields.H"
 #include "temperatureCoupledBase.H"
@@ -101,10 +101,10 @@ namespace compressible
 {
 
 /*---------------------------------------------------------------------------*\
-   Class myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField Declaration
+   Class thermalResistanceCoupledBaffleMixedFvPatchScalarField Declaration
 \*---------------------------------------------------------------------------*/
 
-class myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+class thermalResistanceCoupledBaffleMixedFvPatchScalarField
 :
     public mixedFvPatchScalarField,
     public temperatureCoupledBase
@@ -130,20 +130,20 @@ class myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
 public:
 
     //- Runtime type information
-    TypeName("compressible::myturbulentTemperatureCoupledBaffleMixed");
+    TypeName("compressible::thermalResistanceCoupledBaffleMixed");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+        thermalResistanceCoupledBaffleMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+        thermalResistanceCoupledBaffleMixedFvPatchScalarField
         (
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
@@ -151,11 +151,11 @@ public:
         );
 
         //- Construct by mapping given
-        //  myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField onto a
+        //  thermalResistanceCoupledBaffleMixedFvPatchScalarField onto a
         //  new patch
-        myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+        thermalResistanceCoupledBaffleMixedFvPatchScalarField
         (
-            const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField&,
+            const thermalResistanceCoupledBaffleMixedFvPatchScalarField&,
             const fvPatch&,
             const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
@@ -166,7 +166,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+                new thermalResistanceCoupledBaffleMixedFvPatchScalarField
                 (
                     *this
                 )
@@ -174,9 +174,9 @@ public:
         }
 
         //- Construct as copy setting internal field reference
-        myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+        thermalResistanceCoupledBaffleMixedFvPatchScalarField
         (
-            const myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField&,
+            const thermalResistanceCoupledBaffleMixedFvPatchScalarField&,
             const DimensionedField<scalar, volMesh>&
         );
 
@@ -188,7 +188,7 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new myturbulentTemperatureCoupledBaffleMixedFvPatchScalarField
+                new thermalResistanceCoupledBaffleMixedFvPatchScalarField
                 (
                     *this,
                     iF
