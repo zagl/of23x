@@ -56,7 +56,6 @@ typedef List<Tuple2<label, scalar> > levelList;
 int main(int argc, char *argv[])
 {
     argList::noParallel();
-//    argList::validArgs.append("surfaceFile");
     #include "setRootCase.H"
     #include "createTime.H"
     runTime.functionObjects().off();
@@ -79,8 +78,8 @@ int main(int argc, char *argv[])
     IOdictionary dict(dictIO);
 
     dictionary config = dict.subDict("config");
+    dictionary& solidsDict = config.subDict("solids");
     const dictionary& configDict = dict.subDict("config");
-    const dictionary& solidsDict = configDict.subDict("solids");
     const dictionary& fluidsDict = configDict.subDict("fluids");
     const dictionary& rotationsDict = configDict.subDict("rotations");
     const dictionary& contactsDict = configDict.subDict("contacts");
@@ -102,172 +101,40 @@ int main(int argc, char *argv[])
     regions.append(fluids);
     regions.append(solids);
 
-/*---------------------------------------------------------------------------*\
-                                    blockMesh
-\*---------------------------------------------------------------------------*/
-
-    scalar globalLength  = readScalar(domainDict.lookup("elementLength"));
-    scalar elementGradient = readScalar(domainDict.lookup("gradient"));
-    vectorField boundingBox = configDict.lookup("boundingBox");
-    vectorField distance = domainDict.lookup("width");
-
-    vectorField l(4);
-    vectorField divisions(3);
-    vectorField edgeGradient(3);
-    for ( int i=0; i<3; i++ )
-    {
-        l[0][i] = boundingBox[0][i] - distance[0][i];
-        l[1][i] = boundingBox[0][i];
-        l[2][i] = boundingBox[1][i];
-        l[3][i] = boundingBox[1][i] + distance[1][i];
-
-        divisions[0][i] = int(Foam::log((distance[0][i])/globalLength
-            * (elementGradient - 1) + 1)/Foam::log(elementGradient ) + 0.5);
-
-        divisions[1][i] = int((boundingBox[1][i] - boundingBox[0][i])
-            / globalLength  + 0.5);
-
-        divisions[2][i] = int(Foam::log((distance[1][i])/globalLength 
-            * (elementGradient - 1) + 1)/Foam::log(elementGradient ) + 0.5);
-
-        edgeGradient[0][i] = 1/Foam::pow(elementGradient, divisions[0][i]-1);
-        edgeGradient[1][i] = 1;
-        edgeGradient[2][i] = Foam::pow(elementGradient, divisions[2][i]-1);
-    }
-
-    vectorField vertices;
-    for ( int k=0; k<4; k++ )
-    {
-        for ( int j=0; j<4; j++ )
-        {
-            for ( int i=0; i<4; i++ )
-            {
-                vector p(l[i].x(), l[j].y(), l[k].z());
-                vertices.append(p);
-            }
-        }
-    }
-
-    wordList blocks;
-    for ( int k=0; k<3; k++ )
-    {
-        for ( int j=0; j<3; j++ )
-        {
-            for ( int i=0; i<3; i++ )
-            {
-                labelList corners(8);
-                for ( int n=0; n<8; n++ )
-                {
-                    label corner = i+((n+1)>>1&1) + 4*(j+(n>>1&1))
-                        + 16*(k+(n>>2));
-                    corners[n] = corner;
-                }
-                vector division
-                (
-                    divisions[i].x(),
-                    divisions[j].y(),
-                    divisions[k].z()
-                );
-                vector gradient
-                (
-                    edgeGradient[i].x(),
-                    edgeGradient[j].y(),
-                    edgeGradient[k].z()
-                );
-
-                OStringStream block;
-                block << "hex " << corners << division 
-                    << " simpleGrading " << gradient;
-                blocks.append(block.str());
-            }
-        }
-    }
-
-    dictionary blockMesh;
-    blockMesh.add("blocks", blocks);
-    blockMesh.add("vertices", vertices);
-
-    config.add("blockMesh", blockMesh);
-
 
 /*---------------------------------------------------------------------------*\
-                                  snappyHexMesh
+                                 thermophysical
 \*---------------------------------------------------------------------------*/
 
-    dictionary snappyHexMesh;
-    dictionary geometry;
-    dictionary refinementSurfaces;
-    dictionary refinementRegions;
+    dictionary thermophysical;
 
-    fileName constantDir("constant");
-    fileName triSurfaceDir(constantDir/"triSurface");
-    fileNameList triSurfaces = readDir(triSurfaceDir);
-    HashTable<word> surfFileNames;
-    forAll( triSurfaces, surfI )
+    forAllConstIter(dictionary, solidsDict, iter)
     {
-        surfFileNames.insert(triSurfaces[surfI].lessExt(), triSurfaces[surfI]);
-    }
+        const dictionary& dict = iter().dict();
+        word name = iter().keyword();
+        dictionary& solidDict = solidsDict.subDict(name);
 
-    wordList geomTypes
-    (
-        IStringStream("(solids blanks baffles rotations refinements)")()
-    );
-
-    forAll( geomTypes, i )
-    {
-        word geomType = geomTypes[i];
-        forAllConstIter(dictionary, configDict.subDict(geomType), iter)
+        bool isIsotropic = readBool(dict.lookup("isotropic"));
+        if ( isIsotropic )
         {
-            const dictionary& dict = iter().dict();
-            word name = iter().keyword();
-
-            dictionary geomDict;
-            geomDict.add("name", name);
-            geomDict.add("type", "triSurfaceMesh");
-            geometry.add(surfFileNames[name], geomDict);
-
-            scalar localLength = readScalar(dict.lookup("elementLength"));
-            label refinementLevel =
-                int(Foam::log(globalLength/localLength)
-                / Foam::log(2.0) + 0.5);
-
-            if ( geomType == "refinements" )
-            {
-                dictionary region;
-                levelList levels(1);
-                levels[0] = Level(1.0, refinementLevel);
-                region.add("levels", levels);
-                region.add("mode", "inside");
-                refinementRegions.add(name, region);
-            }
-            else
-            {
-                dictionary surface;
-                Pair<label> level(refinementLevel, refinementLevel);
-                surface.add("level", level);
-                if ( geomType == "solids" )
-                {
-                    surface.add("cellZone", name);
-                    surface.add("faceZone", name);
-                    surface.add("cellZoneInside", "inside");
-                }
-                else if ( geomType == "baffles" )
-                {
-                    surface.add("faceZone", name);
-                }
-                refinementSurfaces.add(name, surface);
-            }
+            solidDict.add("kappa", "solidThermo");
+            solidDict.add("transport", "constIso");
+            solidDict.add("nNonOrthogonalCorrectors", 1);
         }
+        else
+        {
+            solidDict.add("kappa", "directionalSolidThermo");
+            solidDict.add("transport", "constAnIso");
+            solidDict.add("nNonOrthogonalCorrectors", 3);
+        }
+
+        vector e3(dict.lookup("normal"));
+        vector e2(e3.y(), e3.z(), e3.x());
+        vector e1 = e2^e3;
+        solidDict.add("e1", e1);
     }
 
-    vector locationInMesh = boundingBox[0] + vector(0.00001, 0.00001, 0.00001);
-
-    snappyHexMesh.add("geometry", geometry);
-    snappyHexMesh.add("refinementSurfaces", refinementSurfaces);
-    snappyHexMesh.add("refinementRegions", refinementRegions);
-    snappyHexMesh.add("locationInMesh", locationInMesh);
-    config.add("snappyHexMesh", snappyHexMesh);
-
+    config.add("thermophysical", thermophysical);
 
 /*---------------------------------------------------------------------------*\
                                 changeDictionary
@@ -402,7 +269,6 @@ int main(int argc, char *argv[])
     dictionary boundaryField;
     boundaryField.add("type", "compressible::thermalResistanceCoupledBaffleMixed");
     boundaryField.add("Tnbr", "T");
-    boundaryField.add("kappa", kappa);
     boundaryField.add("kappaName", "none");
     boundaryField.add("value", word("uniform $.....temperature.start"));
 
@@ -423,6 +289,8 @@ int main(int argc, char *argv[])
             word first = resistancePair[j];
             word second = resistancePair[k];
             word contactName = first + "_to_" + second;
+
+            boundary.add("kappa", "$.....solids." + first + ".kappa");
 
             fieldT.subDict(first).add(contactName, boundary);
         }
@@ -552,7 +420,7 @@ int main(int argc, char *argv[])
         actions.append(action);
 
     }
-    
+
     dictionary topoSet;
     topoSet.add("actions", actions);
     config.add("topoSet", topoSet);
@@ -597,6 +465,173 @@ int main(int argc, char *argv[])
     modifyRegions.set("defaultCellZone", defaultCellZone);
     modifyRegions.set("cellZones", cellZones);
     config.add("modifyRegions", modifyRegions);
+
+/*---------------------------------------------------------------------------*\
+                                  snappyHexMesh
+\*---------------------------------------------------------------------------*/
+
+    dictionary snappyHexMesh;
+    dictionary geometry;
+    dictionary refinementSurfaces;
+    dictionary refinementRegions;
+
+    scalar globalLength  = readScalar(domainDict.lookup("elementLength"));
+    vectorField boundingBox = configDict.lookup("boundingBox");
+
+    fileName constantDir("constant");
+    fileName triSurfaceDir(constantDir/"triSurface");
+    fileNameList triSurfaces = readDir(triSurfaceDir);
+    HashTable<word> surfFileNames;
+    forAll( triSurfaces, surfI )
+    {
+        surfFileNames.insert(triSurfaces[surfI].lessExt(), triSurfaces[surfI]);
+    }
+
+    wordList geomTypes
+    (
+        IStringStream("(solids blanks baffles rotations refinements)")()
+    );
+
+    forAll( geomTypes, i )
+    {
+        word geomType = geomTypes[i];
+        forAllConstIter(dictionary, configDict.subDict(geomType), iter)
+        {
+            const dictionary& dict = iter().dict();
+            word name = iter().keyword();
+
+            dictionary geomDict;
+            geomDict.add("name", name);
+            geomDict.add("type", "triSurfaceMesh");
+            geometry.add(surfFileNames[name], geomDict);
+
+            scalar localLength = readScalar(dict.lookup("elementLength"));
+            label refinementLevel =
+                int(Foam::log(globalLength/localLength)
+                / Foam::log(2.0) + 0.5);
+
+            if ( geomType == "refinements" )
+            {
+                dictionary region;
+                levelList levels(1);
+                levels[0] = Level(1.0, refinementLevel);
+                region.add("levels", levels);
+                region.add("mode", "inside");
+                refinementRegions.add(name, region);
+            }
+            else
+            {
+                dictionary surface;
+                Pair<label> level(refinementLevel, refinementLevel);
+                surface.add("level", level);
+                if ( geomType == "solids" )
+                {
+                    surface.add("cellZone", name);
+                    surface.add("faceZone", name);
+                    surface.add("cellZoneInside", "inside");
+                }
+                else if ( geomType == "baffles" )
+                {
+                    surface.add("faceZone", name);
+                }
+                refinementSurfaces.add(name, surface);
+            }
+        }
+    }
+
+    vector locationInMesh = boundingBox[0] + vector(0.00001, 0.00001, 0.00001);
+
+    snappyHexMesh.add("geometry", geometry);
+    snappyHexMesh.add("refinementSurfaces", refinementSurfaces);
+    snappyHexMesh.add("refinementRegions", refinementRegions);
+    snappyHexMesh.add("locationInMesh", locationInMesh);
+    config.add("snappyHexMesh", snappyHexMesh);
+
+/*---------------------------------------------------------------------------*\
+                                    blockMesh
+\*---------------------------------------------------------------------------*/
+
+    scalar elementGradient = readScalar(domainDict.lookup("gradient"));
+    vectorField distance = domainDict.lookup("width");
+
+    vectorField l(4);
+    vectorField divisions(3);
+    vectorField edgeGradient(3);
+    for ( int i=0; i<3; i++ )
+    {
+        l[0][i] = boundingBox[0][i] - distance[0][i];
+        l[1][i] = boundingBox[0][i];
+        l[2][i] = boundingBox[1][i];
+        l[3][i] = boundingBox[1][i] + distance[1][i];
+
+        divisions[0][i] = int(Foam::log((distance[0][i])/globalLength
+            * (elementGradient - 1) + 1)/Foam::log(elementGradient ) + 0.5);
+
+        divisions[1][i] = int((boundingBox[1][i] - boundingBox[0][i])
+            / globalLength  + 0.5);
+
+        divisions[2][i] = int(Foam::log((distance[1][i])/globalLength 
+            * (elementGradient - 1) + 1)/Foam::log(elementGradient ) + 0.5);
+
+        edgeGradient[0][i] = 1/Foam::pow(elementGradient, divisions[0][i]-1);
+        edgeGradient[1][i] = 1;
+        edgeGradient[2][i] = Foam::pow(elementGradient, divisions[2][i]-1);
+    }
+
+    vectorField vertices;
+    for ( int k=0; k<4; k++ )
+    {
+        for ( int j=0; j<4; j++ )
+        {
+            for ( int i=0; i<4; i++ )
+            {
+                vector p(l[i].x(), l[j].y(), l[k].z());
+                vertices.append(p);
+            }
+        }
+    }
+
+    wordList blocks;
+    for ( int k=0; k<3; k++ )
+    {
+        for ( int j=0; j<3; j++ )
+        {
+            for ( int i=0; i<3; i++ )
+            {
+                labelList corners(8);
+                for ( int n=0; n<8; n++ )
+                {
+                    label corner = i+((n+1)>>1&1) + 4*(j+(n>>1&1))
+                        + 16*(k+(n>>2));
+                    corners[n] = corner;
+                }
+                vector division
+                (
+                    divisions[i].x(),
+                    divisions[j].y(),
+                    divisions[k].z()
+                );
+                vector gradient
+                (
+                    edgeGradient[i].x(),
+                    edgeGradient[j].y(),
+                    edgeGradient[k].z()
+                );
+
+                OStringStream block;
+                block << "hex " << corners << division 
+                    << " simpleGrading " << gradient;
+                blocks.append(block.str());
+            }
+        }
+    }
+
+    dictionary blockMesh;
+    blockMesh.add("blocks", blocks);
+    blockMesh.add("vertices", vertices);
+
+    config.add("blockMesh", blockMesh);
+
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

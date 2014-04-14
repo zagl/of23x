@@ -20,7 +20,7 @@ thermoType
 {
     type            heSolidThermo;
     mixture         pureMixture;
-    transport       constIso;
+    transport       $:config.solids.SOLID.transport;
     thermo          hConst;
     equationOfState rhoConst;
     specie          specie;
@@ -37,18 +37,30 @@ mixture
 
     transport
     {
-        kappa   $:config.solids.SOLID.conductivity;
+        kappa       $:config.solids.SOLID.conductivity;
     }
 
     thermodynamics
     {
-        Hf      0;
-        Cp      450;
+        Hf          0;
+        Cp          450;
     }
 
     equationOfState
     {
-        rho     8000;
+        rho         8000;
+    }
+}
+
+coordinateSystem
+{
+    type            cartesian;
+    origin          (0 0 0);
+    coordinateRotation
+    {
+        type        axesRotation;
+        e1          $:config.solids.SOLID.rotation.e1;
+        e3          $:config.solids.SOLID.rotation.normal;
     }
 }
 

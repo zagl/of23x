@@ -27,7 +27,7 @@ solvers
 
 SIMPLE
 {
-    nNonOrthogonalCorrectors $:config.fvSolution.SOLID.nNonOrthogonalCorrectors;
+    nNonOrthogonalCorrectors $:config.solids.SOLID.nNonOrthogonalCorrectors;
 }
 
 relaxationFactors

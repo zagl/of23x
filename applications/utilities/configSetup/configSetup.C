@@ -31,7 +31,6 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "triSurface.H"
-//#include "triSurfaceSearch.H"
 #include "argList.H"
 #include "IOdictionary.H"
 #include "Time.H"
@@ -45,7 +44,6 @@ using namespace Foam;
 int main(int argc, char *argv[])
 {
     argList::noParallel();
-//    argList::validArgs.append("surfaceFile");
     #include "setRootCase.H"
     #include "createTime.H"
     runTime.functionObjects().off();
@@ -94,7 +92,7 @@ int main(int argc, char *argv[])
         boundBox bound(surf.points());
         boundPoints.append(bound.min());
         boundPoints.append(bound.max());
-        
+
         dictionary dict;
         dict.add("elementLength", 0.001);
         word geomType = "solids";
@@ -124,11 +122,13 @@ int main(int argc, char *argv[])
         }
         else
         {
+            dict.add("isotropic", Switch(true));
+            dict.add("normal", vector(0, 0, 1));
             dict.add("conductivity", 210);
             dict.add("emissivity", 0.8);
             dict.add("power", 0);
         }
-        
+
         if ( !configDict.subDict(geomType).found(geom) )
         {
             configDict.subDict(geomType).add(geom, dict);
