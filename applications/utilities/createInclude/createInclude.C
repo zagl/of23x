@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
     dictionary boundaryField;
     boundaryField.add("type", "compressible::thermalResistanceCoupledBaffleMixed");
     boundaryField.add("Tnbr", "T");
-    boundaryField.add("kappa", "solidThermo");
+    boundaryField.add("kappa", kappa);
     boundaryField.add("kappaName", "none");
     boundaryField.add("value", word("uniform $.....temperature.start"));
 

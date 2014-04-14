@@ -152,7 +152,7 @@ thermalResistanceCoupledBaffleMixedFvPatchScalarField
             << " in file " << dimensionedInternalField().objectPath()
             << exit(FatalError);
     }
-    
+
     fvPatchScalarField::operator=(scalarField("value", dict, p.size()));
 
     if (dict.found("refValue"))
