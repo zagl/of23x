@@ -60,9 +60,10 @@ fluids
 {
     FLUID
     {
-        insidePoints    ();
-        rotations       ();
-        baffles         ();
+        convection      calculated;
+        insidePoints    ( );
+        rotations       ( );
+        baffles         ( );
     }
 }
 

@@ -88,7 +88,10 @@ int main(int argc, char *argv[])
     wordList fluids;
     forAllConstIter(dictionary, fluidsDict, iter)
     {
-        fluids.append( iter().keyword() );
+        const dictionary& dict = iter().dict();
+        word convection = dict.lookup("convection");
+        if ( convection == "calculated" )
+            fluids.append( iter().keyword() );
     }
 
     wordList solids;
@@ -439,7 +442,7 @@ int main(int argc, char *argv[])
 \*---------------------------------------------------------------------------*/
 
     word defaultCellZone;
-    List<dictionary> cellZones;
+    dictionary cellZones;
 
     forAllConstIter(dictionary, fluidsDict, iter)
     {
@@ -447,18 +450,23 @@ int main(int argc, char *argv[])
         word name = iter().keyword();
 
         pointField insidePoints = dict.lookup("insidePoints");
-
-        if (insidePoints.size() > 0)
-        {
-            dictionary cellZone;
-            cellZone.add("name", name);
-            cellZone.add("insidePoints", insidePoints);
-            cellZones.append(cellZone);
-        }
+        word convection = dict.lookup("convection");
+        word action;
+        if ( convection == "calculated" )
+            action = "keep";
+        else if ( convection == "fixed" )
+            action = "invert";
+        else if ( convection == "none" )
+            action = "remove";
         else
-        {
-            defaultCellZone = name;
-        }
+            FatalErrorIn(args.executable())
+                << "convection has to be either calculated, fixed of none." 
+                << abort(FatalError);
+
+        dictionary cellZone;
+        cellZone.add("insidePoints", insidePoints);
+        cellZone.add("action", action);
+        cellZones.add(name, cellZone);
     }
 
     dictionary modifyRegions;

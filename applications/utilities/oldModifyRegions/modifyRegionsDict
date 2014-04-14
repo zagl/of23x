@@ -16,8 +16,18 @@ FoamFile
 
 #include "./system/includeDict"
 
+// All undefined regions are added to this cellZone.
+defaultCellZone     $:config.modifyRegions.defaultCellZone;
+
+// Merge regions into a single cellZone or create separate cellZones.
+// Separate cellZones are named by defaultCellZone plus numerical suffix.
+mergeRegions        true;
+
 // Put regions with a small number of cells into a separate cellZone.
 cavitiesCellZone    cavities;
+
+// Invert cavitiesCellZone for usage with subSetMesh.
+invertCavities      true;
 
 // Specify size threshold by number of cells or
 // relative in relation to overall mesh size.
@@ -25,27 +35,7 @@ relativeSize        yes;
 minRegionSize       0.02;
 
 // Identify regions by insidePoints and add to individual cellZones.
-cellZones
-{
-    FLUID
-    {
-        action          keep;
-        insidePoints    ( );
-    }
-
-    fixedConvection
-    {
-        action          invert;
-        insidePoints    ( (2 2 2) );
-    }
-
-    temp
-    {
-        action          remove;
-        insidePoints    ( (0 0 0) (1 1 1) );
-    }
-
-}
+cellZones           $:config.modifyRegions.cellZones;
 
 #remove config;
 
