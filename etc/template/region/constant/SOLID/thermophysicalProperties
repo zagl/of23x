@@ -59,8 +59,8 @@ coordinateSystem
     coordinateRotation
     {
         type        axesRotation;
-        e1          $:config.solids.SOLID.rotation.e1;
-        e3          $:config.solids.SOLID.rotation.normal;
+        e1          $:config.solids.SOLID.e1;
+        e3          $:config.solids.SOLID.normal;
     }
 }
 

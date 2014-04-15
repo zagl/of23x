@@ -7,12 +7,33 @@ function of23x
     PATH=$PATH:$HOME/OpenFOAM/scripts
 }
 
+runApp()
+{
+    APP_RUN=$1
+    APP_NAME=${1##*/}
+    shift
+
+    #echo "Running $APP_RUN on $PWD"
+    $APP_RUN "$@" > logs/$APP_NAME.log 2>&1
+}
+
 alias of='of23x'
 
-alias blockMesh='blockMesh -dict system/blockMeshDict'
-alias preSnappy='snappyHexMesh -dict system/preSnappyHexMeshDict'
-alias preSplit='splitMeshRegions -cellZones -makeCellZones'
-alias postSplit='splitMeshRegions -cellZonesOnly'
+alias blockMesh='runApp blockMesh -dict system/blockMeshDict'
+alias castMesh='runApp snappyHexMesh -dict system/preSnappyHexMeshDict'
+alias thinWalls='runApp thinWalls'
+alias snapMesh='runApp snappyHexMesh'
+alias preSplit='runApp splitMeshRegions -cellZones -makeCellZones'
+alias postSplit='runApp splitMeshRegions -cellZonesOnly'
+alias modifyRegions='runApp modifyRegions'
+
+alias bm='blockMesh'
+alias cm='castHexMesh'
+alias tw='thinWalls'
+alias sm='snapHexMesh'
+alias pes='preSplit'
+alias pos='postSplit'
+alias mr='modifyRegions'
 
 alias cd..='cd ..'
 alias cd...='cd ../..'

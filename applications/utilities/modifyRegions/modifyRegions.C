@@ -115,22 +115,38 @@ int main(int argc, char *argv[])
         minRegionSize = readLabel(modifyRegionsDict.lookup("minRegionSize"));
     }
 
-    const word defaultCellZone = modifyRegionsDict.lookup("defaultCellZone");
+    word defaultCellZone = "defaultCellZone";
     const word cavitiesCellZone = modifyRegionsDict.lookup("cavitiesCellZone");
-    const bool mergeRegions = readBool(modifyRegionsDict.lookup("mergeRegions"));
+    //const bool mergeRegions = readBool(modifyRegionsDict.lookup("mergeRegions"));
     const bool invertCavities = readBool(modifyRegionsDict.lookup("invertCavities"));
-    const List<dictionary> cellZones = modifyRegionsDict.lookup("cellZones");
+    const dictionary cellZonesDict = modifyRegionsDict.subDict("cellZones");
 
     Map<word> identifiers;
-    forAll(cellZones, zoneI)
+    forAllConstIter(dictionary, cellZonesDict, iter)
     {
-        word zoneName = cellZones[zoneI].lookup("name");
-        pointField insidePoints = cellZones[zoneI].lookup("insidePoints");
-        forAll( insidePoints, pointI )
+        word zoneName = iter().keyword();
+        const dictionary& dict = iter().dict();
+        pointField insidePoints = dict.lookup("insidePoints");
+        word action = dict.lookup("action");
+        if ( insidePoints.empty() )
         {
-            point insidePoint = insidePoints[pointI];
-            label cellI = mesh.findCell(insidePoint);
-            identifiers.insert(cellI, zoneName);
+            defaultCellZone = zoneName;
+        }
+        else
+        {
+            forAll( insidePoints, pointI )
+            {
+                point insidePoint = insidePoints[pointI];
+                label cellI = mesh.findCell(insidePoint);
+                if ( action == "remove" )
+                {
+                    identifiers.insert(cellI, cavitiesCellZone);
+                }
+                else
+                {
+                    identifiers.insert(cellI, zoneName);
+                }
+            }
         }
     }
     const labelList insideCells = identifiers.toc();
@@ -335,6 +351,7 @@ int main(int argc, char *argv[])
 
 
         wordList newSetsList = newSets.toc();
+
         forAll( newSetsList, i )
         {
             const word newSet = newSetsList[i];
@@ -362,6 +379,15 @@ int main(int argc, char *argv[])
             );
 
             source().applyToSet(action, newCellZoneSet());
+
+            word zoneAction = cellZonesDict.subDict(newSet).lookup("action");
+
+            if ( zoneAction == "invert" )
+            {
+                Info<< "    Invert cellSet " << newSet << nl;
+                newCellZoneSet().invert(mesh.nCells());
+            }
+
             newCellZoneSet().write();
         }
     }

@@ -311,8 +311,21 @@ void thermalResistanceCoupledBaffleMixedFvPatchScalarField::write
     mixedFvPatchScalarField::write(os);
     os.writeKeyword("Tnbr")<< TnbrName_
         << token::END_STATEMENT << nl;
-    thicknessLayers_.writeEntry("thicknessLayers", os);
-    thicknessLayers_.writeEntry("kappaLayers", os);
+ 
+    if (contactRes_ != 0.0)
+    {
+        os.writeKeyword("thicknessLayers")<< thicknessLayers_
+            << token::END_STATEMENT << nl;
+        os.writeKeyword("kappaLayers")<< kappaLayers_
+            << token::END_STATEMENT << nl;
+    }
+    else if (resistance_ != 0.0)
+    {
+        os.writeKeyword("resistance")<< resistance_
+            << token::END_STATEMENT << nl;
+    }
+
+
 
     temperatureCoupledBase::write(os);
 }

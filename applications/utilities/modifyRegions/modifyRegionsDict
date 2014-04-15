@@ -10,7 +10,7 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      modifyRegionsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -32,19 +32,16 @@ cellZones
         action          keep;
         insidePoints    ( );
     }
-
     fixedConvection
     {
         action          invert;
         insidePoints    ( (2 2 2) );
     }
-
     temp
     {
         action          remove;
         insidePoints    ( (0 0 0) (1 1 1) );
     }
-
 }
 
 #remove config;

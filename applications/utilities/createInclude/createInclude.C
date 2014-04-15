@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         {
             solidDict.add("kappa", "solidThermo");
             solidDict.add("transport", "constIso");
-            solidDict.add("nNonOrthogonalCorrectors", 1);
+            solidDict.add("nNonOrthogonalCorrectors", 0);
         }
         else
         {
@@ -283,9 +283,6 @@ int main(int argc, char *argv[])
         wordPair resistancePair = resistancePairs[i];
         scalar resistance = resistances[i];
 
-        dictionary boundary = boundaryField;
-        boundary.add("resistance", resistance);
-
         for ( int j=0; j<2; j++ )
         {
             int k = (j+1)%2;
@@ -293,7 +290,9 @@ int main(int argc, char *argv[])
             word second = resistancePair[k];
             word contactName = first + "_to_" + second;
 
-            boundary.add("kappa", "$.....solids." + first + ".kappa");
+            dictionary boundary = boundaryField;
+            boundary.add("resistance", resistance);
+            boundary.add("kappa", word("$.....solids." + first + ".kappa"));
 
             fieldT.subDict(first).add(contactName, boundary);
         }
@@ -309,16 +308,17 @@ int main(int argc, char *argv[])
         scalarList thicknessLayer = thicknessLayers[i];
         scalarList kappaLayer = kappaLayers[i];
 
-        dictionary boundary = boundaryField;
-        boundary.add("thicknessLayers", thicknessLayer);
-        boundary.add("kappaLayers", kappaLayer);
-
         for ( int j=0; j<2; j++ )
         {
             int k = (j+1)%2;
             word first = thermalLayerPair[j];
             word second = thermalLayerPair[k];
             word contactName = first + "_to_" + second;
+
+            dictionary boundary = boundaryField;
+            boundary.add("thicknessLayers", thicknessLayer);
+            boundary.add("kappaLayers", kappaLayer);
+            boundary.add("kappa", word("$.....solids." + first + ".kappa"));
 
             fieldT.subDict(first).add(contactName, boundary);
         }
