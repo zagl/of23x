@@ -13,6 +13,8 @@ runApp()
     APP_NAME=${1##*/}
     shift
 
+    mkdir -p logs
+
     #echo "Running $APP_RUN on $PWD"
     $APP_RUN "$@" > logs/$APP_NAME.log 2>&1
 }
@@ -26,11 +28,12 @@ alias snapMesh='runApp snappyHexMesh'
 alias preSplit='runApp splitMeshRegions -cellZones -makeCellZones'
 alias postSplit='runApp splitMeshRegions -cellZonesOnly'
 alias modifyRegions='runApp modifyRegions'
+alias cht='runApp chtMultiRegionSimpleFoam'
 
 alias bm='blockMesh'
-alias cm='castHexMesh'
+alias cm='castMesh'
 alias tw='thinWalls'
-alias sm='snapHexMesh'
+alias sm='snapMesh'
 alias pes='preSplit'
 alias pos='postSplit'
 alias mr='modifyRegions'
