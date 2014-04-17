@@ -10,7 +10,7 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      topoSetDict;
+    object      modifyRegionsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -18,8 +18,6 @@ FoamFile
 
 // Put regions with a small number of cells into a separate cellZone.
 cavitiesCellZone    cavities;
-
-invertCavities      true;
 
 // Specify size threshold by number of cells or
 // relative in relation to overall mesh size.
@@ -29,7 +27,21 @@ minRegionSize       0.02;
 // Identify regions by insidePoints and add to individual cellZones.
 cellZones
 {
-    $:config.modifyRegions.cellZones
+    FLUID
+    {
+        action          keep;
+        insidePoints    ( );
+    }
+    fixedConvection
+    {
+        action          invert;
+        insidePoints    ( (2 2 2) );
+    }
+    temp
+    {
+        action          remove;
+        insidePoints    ( (0 0 0) (1 1 1) );
+    }
 }
 
 #remove config;
