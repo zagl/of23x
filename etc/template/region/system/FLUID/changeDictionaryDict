@@ -27,6 +27,7 @@ dictionaryReplacement
 
         "F.*"
         {
+            type            mappedWall;
             inGroups        ($:config.changeDictionary.coupledWallGroup);
         }
 

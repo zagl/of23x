@@ -75,7 +75,9 @@ int main(int argc, char *argv[])
     const scalar baseLength = meshCutter.level0EdgeLength();
     const labelList& cellLevel = meshCutter.cellLevel(); 
 
-    const cellZoneMesh& cellZones = mesh.cellZones();
+    cellZoneMesh& cellZones = mesh.cellZones();
+    
+    PackedBoolList isAssigned(mesh.nCells(), false);
 
     labelHashSet facesInZones(mesh.nFaces()/10);
 
@@ -104,6 +106,11 @@ int main(int argc, char *argv[])
             );
 
             labelList& regionCells = regionCellZone.addressing();
+            
+            regionCells.clear();
+
+            regionCellZone.updateSet();
+            regionCellZone.write();
 
             faceZoneSet regionFaceZone
             (
@@ -115,27 +122,40 @@ int main(int argc, char *argv[])
 
             forAll( cellCentres, cellI )
             {
-                if ( cellZones.whichZone(cellI) == -1 )
+                if ( !isAssigned[cellI] )
                 {
-                    point cellCentre = cellCentres[cellI];
-                    scalar localLength = baseLength / pow(2, cellLevel[cellI]);
-                    pointIndexHit pHit1 =
-                        tree.findNearest(cellCentre, pow(localLength*0.5, 2));
-                    if ( pHit1.hit() )
+                    const point& cellCentre = cellCentres[cellI];
+                    
+                    if ( tree.bb().contains(cellCentre) )
                     {
-                        label triangleI = pHit1.index();
-                        point nearestSurfPoint = pHit1.hitPoint();
-                        vector localNormal = normals[triangleI];
-                        point searchStart = nearestSurfPoint - localNormal*1e-6;
-                        point searchEnd = searchStart - localNormal*(100*baseLength);
-                        pointIndexHit pHit2 = tree.findLine(searchStart, searchEnd);
-                        if ( pHit2.hit() )
+                        if (tree.getVolumeType(cellCentre) == volumeType::INSIDE)
                         {
-                            point nextSurfPoint = pHit2.hitPoint();
-                            scalar wallThickness = mag(nextSurfPoint - nearestSurfPoint);
-                            if ( wallThickness <= localLength*1.2 )
+                            regionCells.append(cellI);
+                            isAssigned[cellI] = true;
+                        }
+                    }
+                    else
+                    {
+                        scalar localLength = baseLength / pow(2, cellLevel[cellI]);
+                        pointIndexHit pHit1 =
+                            tree.findNearest(cellCentre, pow(localLength*0.5, 2));
+                        if ( pHit1.hit() )
+                        {
+                            label triangleI = pHit1.index();
+                            point nearestSurfPoint = pHit1.hitPoint();
+                            vector localNormal = normals[triangleI];
+                            point searchStart = nearestSurfPoint - localNormal*1e-6;
+                            point searchEnd = searchStart - localNormal*(100*baseLength);
+                            pointIndexHit pHit2 = tree.findLine(searchStart, searchEnd);
+                            if ( pHit2.hit() )
                             {
-                                regionCells.append(cellI);
+                                point nextSurfPoint = pHit2.hitPoint();
+                                scalar wallThickness = mag(nextSurfPoint - nearestSurfPoint);
+                                if ( wallThickness <= localLength*1.2 )
+                                {
+                                    regionCells.append(cellI);
+                                    isAssigned[cellI] = true;
+                                }
                             }
                         }
                     }

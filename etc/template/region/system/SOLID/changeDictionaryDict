@@ -26,11 +26,19 @@ dictionaryReplacement
         }
         ".*_to_F.*"
         {
+            type            mappedWall;
             inGroups        ($:config.changeDictionary.coupledWallGroup);
         }
         ".*_to_[^F].*"
         {
+            type            mappedWall;
             inGroups        (coupledWall);
+        }
+        
+        "external.*"
+        {
+            type            wall;
+            inGroups        (fixedWall);
         }
 
         $:config.changeDictionary.regions.SOLID

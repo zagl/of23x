@@ -85,6 +85,15 @@ int main(int argc, char *argv[])
     const dictionary& contactsDict = configDict.subDict("contacts");
     const dictionary& domainDict = configDict.subDict("domain");
 
+    dictionary resistancesDict = contactsDict.subDict("resistances");
+    wordPairList resistancePairs = resistancesDict.lookup("pairs");
+    scalarList resistances = resistancesDict.lookup("resistances");
+
+    dictionary thermalLayersDict = contactsDict.subDict("thermalLayers");
+    wordPairList thermalLayerPairs = thermalLayersDict.lookup("pairs");
+    scalarListList thicknessLayers = thermalLayersDict.lookup("thicknessLayers");
+    scalarListList kappaLayers = thermalLayersDict.lookup("kappaLayers");
+
     wordList fluids;
     forAllConstIter(dictionary, fluidsDict, iter)
     {
@@ -158,21 +167,79 @@ int main(int argc, char *argv[])
     isolation.add("type", "wall");
     isolation.add("inGroups", groups);
 
+    wordPairList otherPairs = thermalLayerPairs;
+    otherPairs.append(resistancePairs);
+
     dictionary isolationsDict = contactsDict.subDict("isolations");
     wordPairList isolationPairs = isolationsDict.lookup("pairs");
     forAll( isolationPairs, i )
     {
         wordPair isolationPair = isolationPairs[i];
-        for ( int j=0; j<2; j++ )
-        {
-            int k = (j+1)%2;
-            word first = isolationPair[j];
-            word second = isolationPair[k];
-            word contactName = first + "_to_" + second;
 
-            changeDictRegions.subDict(first).add(contactName, isolation);
+        if
+        (
+            isolationPair.second() == "ALL" ||
+            isolationPair.second() == "ALL_SOLIDS"
+        )
+        {
+            word first = isolationPair.first();
+
+            wordList otherRegions;
+
+            if ( isolationPair.second() == "ALL" )
+            {
+                otherRegions.append(regions);
+
+                string contactName = "externalWall";
+                changeDictRegions.subDict(first).add(contactName, isolation);
+            }
+            else
+            {
+                otherRegions.append(solids);
+            }
+
+            forAll( otherRegions, i )
+            {
+                word region = otherRegions[i];
+                bool hasOtherPair = false;
+                forAll( otherPairs, i )
+                {
+                    wordPair otherPair = otherPairs[i];
+
+                    if
+                    (
+                        otherPair.first() == region ||
+                        otherPair.second() == region
+                    )
+                    {
+                        hasOtherPair = true;
+                        break;
+                    }
+                }
+
+                if ( !hasOtherPair )
+                {
+                    string contactName = first + "_to_" + region;
+                    changeDictRegions.subDict(first).add(contactName, isolation);
+                    contactName = region + "_to_" + first;
+                    changeDictRegions.subDict(region).add(contactName, isolation);
+                }
+            }
+        }
+        else
+        {
+            for ( int j=0; j<2; j++ )
+            {
+                int k = (j+1)%2;
+                word first = isolationPair[j];
+                word second = isolationPair[k];
+
+                word contactName = first + "_to_" + second;
+                changeDictRegions.subDict(first).add(contactName, isolation);
+            }
         }
     }
+
 
     word radiation = configDict.subDict("radiation").lookup("model");
     word coupledWallGroup =
@@ -275,9 +342,6 @@ int main(int argc, char *argv[])
     boundaryField.add("kappaName", "none");
     boundaryField.add("value", word("uniform $.....temperature.start"));
 
-    dictionary resistancesDict = contactsDict.subDict("resistances");
-    wordPairList resistancePairs = resistancesDict.lookup("pairs");
-    scalarList resistances = resistancesDict.lookup("resistances");
     forAll( resistancePairs, i )
     {
         wordPair resistancePair = resistancePairs[i];
@@ -298,10 +362,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    dictionary thermalLayersDict = contactsDict.subDict("thermalLayers");
-    wordPairList thermalLayerPairs = thermalLayersDict.lookup("pairs");
-    scalarListList thicknessLayers = thermalLayersDict.lookup("thicknessLayers");
-    scalarListList kappaLayers = thermalLayersDict.lookup("kappaLayers");
     forAll( thermalLayerPairs, i )
     {
         wordPair thermalLayerPair = thermalLayerPairs[i];

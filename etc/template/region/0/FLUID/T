@@ -28,7 +28,21 @@ boundaryField
         value       $internalField;
     }
 
-    "(open|top|outlet)"
+    outlet
+    {
+        type        inletOutlet;
+        inletValue  $internalField;
+        value       $internalField;
+    }
+
+    ceiling
+    {
+        type        inletOutlet;
+        inletValue  $internalField;
+        value       $internalField;
+    }
+
+    open
     {
         type        inletOutlet;
         inletValue  $internalField;
