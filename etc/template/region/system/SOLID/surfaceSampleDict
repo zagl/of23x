@@ -28,7 +28,7 @@ sets
     {
         type nearestTriSurfaceMeshPointSet;
         axis xyz;
-        surface "SOLID.obj";
+        surface "SOLIDF.obj";
     }
 );
 

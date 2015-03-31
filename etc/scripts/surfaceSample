@@ -35,7 +35,7 @@ createVTK()
                 print ""
         }
     }
-    ' postProcessing/sets/${region}/${latestTime}/sample_T.xy postProcessing/${region}.obj > ${region}.vtk
+    ' postProcessing/sets/${region}/${latestTime}/sample_T.xy constant/triSurface/${region}F.obj > ${region}.vtk
 }
 
 solids=$(sed -ne 's/^ *solids[^(]*( \(.*\) );$/\1/p' system/includeDict)
@@ -44,7 +44,7 @@ latestTime=$(ls -d1 [0-9]* | sort -n | tail -1)
 mkdir -p postProcessing
 
 for region in $solids; do
-    surfaceRefine constant/triSurface/${region}.* postProcessing/${region}.obj 0.001
+    surfaceRefine constant/triSurface/${region}.* constant/triSurface/${region}F.obj 0.004
     sample -region ${region} -time $latestTime -dict system/surfaceSampleDict
     createVTK
 done
