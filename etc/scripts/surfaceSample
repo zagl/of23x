@@ -35,7 +35,7 @@ createVTK()
                 print ""
         }
     }
-    ' postProcessing/sets/${region}/${latestTime}/sample_T.xy constant/triSurface/${region}F.obj > ${region}.vtk
+    ' postProcessing/sets/${region}/${latestTime}/sample_Temperature.xy constant/triSurface/${region}F.obj > ${region}.vtk
 }
 
 solids=$(sed -ne 's/^ *solids[^(]*( \(.*\) );$/\1/p' system/includeDict)

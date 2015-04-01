@@ -19,7 +19,7 @@ interpolationScheme cellPoint;
 
 fields
 (
-    T
+    Temperature
 );
 
 sets
