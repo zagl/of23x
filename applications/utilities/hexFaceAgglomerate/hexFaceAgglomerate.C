@@ -34,10 +34,10 @@ Description
 #include "argList.H"
 #include "fvMesh.H"
 #include "Time.H"
+#include "boundaryMesh.H"
 #include "volFields.H"
 #include "CompactListList.H"
 #include "unitConversion.H"
-#include "pairPatchAgglomeration.H"
 #include "labelListIOList.H"
 #include "syncTools.H"
 #include "globalIndex.H"
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 
     const polyBoundaryMesh& boundary = mesh.boundaryMesh();
 
+
     labelListIOList finalAgglom
     (
         IOobject
@@ -90,18 +91,52 @@ int main(int argc, char *argv[])
             label patchI =  patchIds[i];
             const polyPatch& pp = boundary[patchI];
 
-            Info<< pp << nl;
             if (!pp.coupled())
             {
                 Info << "\nAgglomerating patch : " << pp.name() << endl;
-                pairPatchAgglomeration agglomObject
-                (
-                    pp,
-                    agglomDict.subDict(pp.name())
-                );
-                agglomObject.agglomerate();
-                finalAgglom[patchI] =
-                    agglomObject.restrictTopBottomAddressing();
+
+                pointField faceCentres = pp.faceCentres();
+                vectorField faceNormals = pp.faceNormals();
+
+                labelList patchAgglomeration(pp.size());
+
+                labelList agglomIDs(2);
+                agglomIDs[0] = -1;
+                agglomIDs[1] = -1;
+
+                label currentID = 0;
+
+
+                forAll(faceCentres, faceI)
+                {
+                    point faceCentre = faceCentres[faceI];
+
+                    if (faceCentre.x() > 0)
+                    {
+                        if (agglomIDs[0] == -1)
+                        {
+                            agglomIDs[0] = currentID;
+                            currentID++;
+                        }
+                        patchAgglomeration[faceI] = agglomIDs[0];
+                    }
+                    else
+                    {
+                        if (agglomIDs[1] == -1)
+                        {
+                            agglomIDs[1] = currentID;
+                            currentID++;
+                        }
+                        patchAgglomeration[faceI] = agglomIDs[1];
+                    }
+                }
+
+
+
+
+
+
+                finalAgglom[patchI] = patchAgglomeration;
 
                 Info<<finalAgglom[patchI]<<nl;
 
