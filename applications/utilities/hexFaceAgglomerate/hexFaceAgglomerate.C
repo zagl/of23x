@@ -34,6 +34,7 @@ Description
 #include "fvMesh.H"
 #include "Time.H"
 #include "boundaryMesh.H"
+#include "boundBox.H"
 #include "volFields.H"
 #include "CompactListList.H"
 #include "unitConversion.H"
@@ -95,14 +96,18 @@ int main(int argc, char *argv[])
             {
                 Info << "\nAgglomerating patch : " << pp.name() << endl;
 
-                HashTable<label, word> indexMap1(10);
-                indexMap1.insert( "hallo", 1 );
-                Info<< indexMap1["hallo"] << nl;
+                boundBox bb(pp.points());
 
-//                HashTable<label, Point> indexMap(10);
-//                indexMap.insert( Point(0, 0, 0), 1 );
+                label maxOneDir = 10;
+                scalar stepLength = cmptMax( bb.span() ) / maxOneDir;
 
-//                Info<< indexMap["hallo"] << nl;
+                label nAgglomCells = ( bb.span().x() + bb.span().y() + bb.span().z() ) / stepLength;
+
+                Info<< nAgglomCells<< nl;
+
+
+                labelListList cartesianCellFaces(10*10*10);
+
 
                 pointField faceCentres = pp.faceCentres();
                 vectorField faceNormals = pp.faceNormals();
