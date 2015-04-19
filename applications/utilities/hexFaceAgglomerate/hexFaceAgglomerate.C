@@ -25,7 +25,6 @@ Application
     hexFaceAgglomerate
 
 Description
-
     Agglomerate boundary faces by hex regions.
     It writes a map from the fine to coarse grid.
 
@@ -41,6 +40,7 @@ Description
 #include "labelListIOList.H"
 #include "syncTools.H"
 #include "globalIndex.H"
+#include "labelVector.H"
 
 using namespace Foam;
 
@@ -95,6 +95,15 @@ int main(int argc, char *argv[])
             {
                 Info << "\nAgglomerating patch : " << pp.name() << endl;
 
+                HashTable<label, word> indexMap1(10);
+                indexMap1.insert( "hallo", 1 );
+                Info<< indexMap1["hallo"] << nl;
+
+//                HashTable<label, Point> indexMap(10);
+//                indexMap.insert( Point(0, 0, 0), 1 );
+
+//                Info<< indexMap["hallo"] << nl;
+
                 pointField faceCentres = pp.faceCentres();
                 vectorField faceNormals = pp.faceNormals();
 
@@ -138,7 +147,6 @@ int main(int argc, char *argv[])
 
                 finalAgglom[patchI] = patchAgglomeration;
 
-                Info<<finalAgglom[patchI]<<nl;
 
                 if (finalAgglom[patchI].size())
                 {
