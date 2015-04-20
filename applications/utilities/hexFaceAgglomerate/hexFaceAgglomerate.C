@@ -96,55 +96,99 @@ int main(int argc, char *argv[])
             {
                 Info << "\nAgglomerating patch : " << pp.name() << endl;
 
-                boundBox bb(pp.points());
+                boundBox bb(pp.localPoints());
 
-                label maxOneDir = 10;
+                label maxOneDir = 5;
                 scalar stepLength = cmptMax( bb.span() ) / maxOneDir;
 
-                label nAgglomCells = ( bb.span().x() + bb.span().y() + bb.span().z() ) / stepLength;
+                point bbMin = bb.min() - vector(stepLength*.5, stepLength*.5, stepLength*.5);
 
-                Info<< nAgglomCells<< nl;
+                label nX = int( bb.span().x() / stepLength ) + 2;
+                label nY = int( bb.span().y() / stepLength ) + 2;
+                label nZ = int( bb.span().z() / stepLength ) + 2;
 
+                Info<< bb << nl;
+                Info<< nX << ' ' << nY << ' ' << nZ << nl;
 
-                labelListList cartesianCellFaces(10*10*10);
+                labelListList agglomCellsFaces(nX*nY*nZ);
 
+                Info<< nX*nY*nZ << nl;
 
-                pointField faceCentres = pp.faceCentres();
-                vectorField faceNormals = pp.faceNormals();
-
+                const pointField& faceCentres = pp.faceCentres();
+                const vectorField& faceNormals = pp.faceNormals();
                 labelList patchAgglomeration(pp.size());
-
-                labelList agglomIDs(2);
-                agglomIDs[0] = -1;
-                agglomIDs[1] = -1;
-
-                label currentID = 0;
 
 
                 forAll(faceCentres, faceI)
                 {
-                    point faceCentre = faceCentres[faceI];
+                    const point& faceCentre = faceCentres[faceI];
 
-                    if (faceCentre.x() > 0)
-                    {
-                        if (agglomIDs[0] == -1)
-                        {
-                            agglomIDs[0] = currentID;
-                            currentID++;
-                        }
-                        patchAgglomeration[faceI] = agglomIDs[0];
-                    }
-                    else
-                    {
-                        if (agglomIDs[1] == -1)
-                        {
-                            agglomIDs[1] = currentID;
-                            currentID++;
-                        }
-                        patchAgglomeration[faceI] = agglomIDs[1];
-                    }
+                    vector faceOffset = faceCentre - bbMin;
+
+                    label xI = int( faceOffset.x() / stepLength );
+                    label yI = int( faceOffset.y() / stepLength );
+                    label zI = int( faceOffset.z() / stepLength );
+
+                    label agglomCellI = xI + yI*nX + zI*nX*nY;
+
+                    agglomCellsFaces[agglomCellI].append(faceI);
+
                 }
 
+                label coarseFaceI = 0;
+
+                forAll( agglomCellsFaces, agglomCellI )
+                {
+                    labelList agglomCellFaces = agglomCellsFaces[agglomCellI];
+
+                    if (agglomCellFaces.size() > 0)
+                    {
+                        forAll( agglomCellFaces, i )
+                        {
+                            label faceI = agglomCellFaces[i];
+                            patchAgglomeration[faceI] = coarseFaceI;
+                        }
+
+                        coarseFaceI++;
+                    }
+                }
+//
+//
+//
+//
+//
+//
+//                labelList agglomIDs(2);
+//                agglomIDs[0] = -1;
+//                agglomIDs[1] = -1;
+//
+//                label currentID = 0;
+//
+//
+//                forAll(faceCentres, faceI)
+//                {
+//                    point faceCentre = faceCentres[faceI];
+//
+//                    if (faceCentre.x() > 0)
+//                    {
+//                        if (agglomIDs[0] == -1)
+//                        {
+//                            agglomIDs[0] = currentID;
+//                            currentID++;
+//                        }
+//                        patchAgglomeration[faceI] = agglomIDs[0];
+//                    }
+//                    else
+//                    {
+//                        if (agglomIDs[1] == -1)
+//                        {
+//                            agglomIDs[1] = currentID;
+//                            currentID++;
+//                        }
+//                        patchAgglomeration[faceI] = agglomIDs[1];
+//                    }
+//                }
+//
 
 
 
