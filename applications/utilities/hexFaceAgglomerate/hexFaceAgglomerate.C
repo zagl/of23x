@@ -42,6 +42,7 @@ Description
 #include "syncTools.H"
 #include "globalIndex.H"
 #include "labelVector.H"
+#include "PatchTools.H"
 
 using namespace Foam;
 
@@ -87,6 +88,8 @@ int main(int argc, char *argv[])
     forAllConstIter(dictionary, agglomDict, iter)
     {
         labelList patchIds = boundary.findIndices(iter().keyword());
+
+
         forAll(patchIds, i)
         {
             label patchI =  patchIds[i];
@@ -96,9 +99,14 @@ int main(int argc, char *argv[])
             {
                 Info << "\nAgglomerating patch : " << pp.name() << endl;
 
+                dictionary controlDict = agglomDict.subDict(pp.name());
+                label nFacesInCoarsestLevel = readLabel(controlDict.lookup("nFacesInCoarsestLevel"));
+                scalar featureAngle = controlDict.lookupOrDefault<scalar>("featureAngle", 0);
+                const scalar minCos = Foam::cos(degToRad(featureAngle));
+
                 boundBox bb(pp.localPoints());
 
-                label maxOneDir = 5;
+                label maxOneDir = nFacesInCoarsestLevel;
                 scalar stepLength = cmptMax( bb.span() ) / maxOneDir;
 
                 point bbMin = bb.min() - vector(stepLength*.5, stepLength*.5, stepLength*.5);
@@ -107,15 +115,15 @@ int main(int argc, char *argv[])
                 label nY = int( bb.span().y() / stepLength ) + 2;
                 label nZ = int( bb.span().z() / stepLength ) + 2;
 
-                Info<< bb << nl;
-                Info<< nX << ' ' << nY << ' ' << nZ << nl;
 
                 labelListList agglomCellsFaces(nX*nY*nZ);
 
-                Info<< nX*nY*nZ << nl;
 
                 const pointField& faceCentres = pp.faceCentres();
                 const vectorField& faceNormals = pp.faceNormals();
+                const labelListList& faceEdges = pp.faceEdges();
+                const labelListList& faceFaces = pp.faceFaces();
+                const labelListList& edgeFaces = pp.edgeFaces();
                 labelList patchAgglomeration(pp.size());
 
 
@@ -143,54 +151,66 @@ int main(int argc, char *argv[])
 
                     if (agglomCellFaces.size() > 0)
                     {
+
+                        labelListList nEdgesFaces(pp.nEdges());
+
                         forAll( agglomCellFaces, i )
                         {
                             label faceI = agglomCellFaces[i];
-                            patchAgglomeration[faceI] = coarseFaceI;
+                            labelList faceIEdges = faceEdges[faceI];
+                            forAll( faceIEdges, j )
+                            {
+                                label edgeI = faceIEdges[j];
+                                nEdgesFaces[edgeI].append(faceI);
+                            }
                         }
 
-                        coarseFaceI++;
+                        boolList borderEdge(pp.nEdges(), false);
+
+                        forAll( nEdgesFaces, edgeI )
+                        {
+                            labelList nEdgeFaces = nEdgesFaces[edgeI];
+
+                            if (nEdgeFaces.size() == 2)
+                            {
+                                if ((faceNormals[nEdgeFaces[0]] & faceNormals[nEdgeFaces[1]]) < minCos)
+                                {
+                                    borderEdge[edgeI] = true;
+                                }
+                            }
+                            else
+                            {
+                                borderEdge[edgeI] = true;
+                            }
+                        }
+
+                        label currentZone = 0;
+                        labelList faceZone(pp.size(), -1);
+
+                        forAll( agglomCellFaces, i )
+                        {
+                            label faceI = agglomCellFaces[i];
+
+                            if (faceZone[faceI] == -1)
+                            {
+                                PatchTools::markZone(
+                                    pp,
+                                    borderEdge,
+                                    faceI,
+                                    currentZone,
+                                    faceZone
+                                );
+                                faceZone[faceI] = currentZone;
+                                currentZone++;
+                            }
+
+                            patchAgglomeration[faceI] = coarseFaceI + faceZone[faceI];
+                        }
+
+                        coarseFaceI += currentZone;
+
                     }
                 }
-//
-//
-//
-//
-//
-//
-//                labelList agglomIDs(2);
-//                agglomIDs[0] = -1;
-//                agglomIDs[1] = -1;
-//
-//                label currentID = 0;
-//
-//
-//                forAll(faceCentres, faceI)
-//                {
-//                    point faceCentre = faceCentres[faceI];
-//
-//                    if (faceCentre.x() > 0)
-//                    {
-//                        if (agglomIDs[0] == -1)
-//                        {
-//                            agglomIDs[0] = currentID;
-//                            currentID++;
-//                        }
-//                        patchAgglomeration[faceI] = agglomIDs[0];
-//                    }
-//                    else
-//                    {
-//                        if (agglomIDs[1] == -1)
-//                        {
-//                            agglomIDs[1] = currentID;
-//                            currentID++;
-//                        }
-//                        patchAgglomeration[faceI] = agglomIDs[1];
-//                    }
-//                }
-//
-
-
 
 
 
