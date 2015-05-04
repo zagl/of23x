@@ -14,8 +14,8 @@ runApp()
     shift
 
     mkdir -p logs
-
-    #echo "Running $APP_RUN on $PWD"
+    
+    echo "Running $APP_RUN on $PWD"
     $APP_RUN "$@" > logs/$APP_NAME.log 2>&1
 }
 
@@ -37,6 +37,18 @@ alias sm='snapMesh'
 alias pes='preSplit'
 alias pos='postSplit'
 alias mr='modifyRegions'
+
+function meshAll
+{
+    bm
+    cm
+    sm
+    pes
+    mr
+    subsetMesh cavities
+    pos
+}
+
 
 alias cd..='cd ..'
 alias cd...='cd ../..'
