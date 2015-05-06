@@ -124,8 +124,10 @@ int main(int argc, char *argv[])
                 const labelListList& faceEdges = pp.faceEdges();
                 const labelListList& faceFaces = pp.faceFaces();
                 const labelListList& edgeFaces = pp.edgeFaces();
-                labelList patchAgglomeration(pp.size());
+                const labelListList& pointEdges = pp.pointEdges();
+                const edgeList& edges = pp.edges();
 
+                labelList patchAgglomeration(pp.size());
 
                 forAll(faceCentres, faceI)
                 {
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
                     if (agglomCellFaces.size() > 0)
                     {
 
-                        labelListList nEdgesFaces(pp.nEdges());
+                        labelListList edgesFaces(pp.nEdges());
 
                         forAll( agglomCellFaces, i )
                         {
@@ -161,26 +163,86 @@ int main(int argc, char *argv[])
                             forAll( faceIEdges, j )
                             {
                                 label edgeI = faceIEdges[j];
-                                nEdgesFaces[edgeI].append(faceI);
+                                edgesFaces[edgeI].append(faceI);
                             }
                         }
 
                         boolList borderEdge(pp.nEdges(), false);
+                        DynamicList<label> borderEdges(pp.nEdges());
 
-                        forAll( nEdgesFaces, edgeI )
+                        forAll( edgesFaces, edgeI )
                         {
-                            labelList nEdgeFaces = nEdgesFaces[edgeI];
+                            labelList edgeFaces = edgesFaces[edgeI];
 
-                            if (nEdgeFaces.size() == 2)
+                            bool isBorderEdge = false;
+
+                            if (edgeFaces.size() == 2)
                             {
-                                if ((faceNormals[nEdgeFaces[0]] & faceNormals[nEdgeFaces[1]]) < minCos)
+                                if ((faceNormals[edgeFaces[0]] & faceNormals[edgeFaces[1]]) < minCos)
                                 {
-                                    borderEdge[edgeI] = true;
+                                    isBorderEdge = true;
                                 }
                             }
                             else
                             {
+                                isBorderEdge = true;
+                            }
+
+                            if (isBorderEdge)
+                            {
                                 borderEdge[edgeI] = true;
+                                borderEdges.append(edgeI);
+                            }
+                        }
+
+
+                        boolList visitedEdges(pp.nEdges(), false);
+                        DynamicList<DynamicList<label> > wires;
+                        label wireI = 0;
+
+                        forAll(borderEdges, i)
+                        {
+                            label edgeI = borderEdges[i];
+                            label thisEdge = edgeI;
+                            if (!visitedEdges[edgeI])
+                            {
+                                label startPoint = edges[edgeI][0];
+                                label lastPoint = edges[edgeI][1];
+
+                                while (lastPoint != startPoint)
+                                {
+                                    labelList nextEdges = pointEdges[lastPoint];
+                                    labelList nextPoints(10);
+
+                                    forAll(nextEdges, i)
+                                    {
+                                        label nextEdgeI = nextEdges[i];
+                                        edge& nextEdge = edges[nextEdgeI];
+                                        if (
+                                            nextEdgeI != thisEdge
+                                            && !visitedEdges[nextEdgeI]
+                                            && borderEdge[nextEdgeI]
+                                        )
+                                        {
+                                            visitedEdges[nextEdgeI] = true;
+
+                                            if (lastPoint == nextEdge[0])
+                                            {
+                                                nextPoints.append(nextEdge[1]);
+                                            }
+                                            else
+                                            {
+                                                nextPoints.append(nextEdge[0]);
+                                            }
+                                        }
+                                    }
+
+                                    forAll(nextPoints, i)
+                                    {
+                                        
+                                    }
+                                }
+
                             }
                         }
 
