@@ -43,6 +43,7 @@ Description
 #include "globalIndex.H"
 #include "labelVector.H"
 #include "PatchTools.H"
+#include "uindirectPrimitivePatch.H"
 
 using namespace Foam;
 
@@ -195,57 +196,6 @@ int main(int argc, char *argv[])
                             }
                         }
 
-
-                        boolList visitedEdges(pp.nEdges(), false);
-                        DynamicList<DynamicList<label> > wires;
-                        label wireI = 0;
-
-                        forAll(borderEdges, i)
-                        {
-                            label edgeI = borderEdges[i];
-                            label thisEdge = edgeI;
-                            if (!visitedEdges[edgeI])
-                            {
-                                label startPoint = edges[edgeI][0];
-                                label lastPoint = edges[edgeI][1];
-
-                                while (lastPoint != startPoint)
-                                {
-                                    labelList nextEdges = pointEdges[lastPoint];
-                                    labelList nextPoints(10);
-
-                                    forAll(nextEdges, i)
-                                    {
-                                        label nextEdgeI = nextEdges[i];
-                                        edge& nextEdge = edges[nextEdgeI];
-                                        if (
-                                            nextEdgeI != thisEdge
-                                            && !visitedEdges[nextEdgeI]
-                                            && borderEdge[nextEdgeI]
-                                        )
-                                        {
-                                            visitedEdges[nextEdgeI] = true;
-
-                                            if (lastPoint == nextEdge[0])
-                                            {
-                                                nextPoints.append(nextEdge[1]);
-                                            }
-                                            else
-                                            {
-                                                nextPoints.append(nextEdge[0]);
-                                            }
-                                        }
-                                    }
-
-                                    forAll(nextPoints, i)
-                                    {
-                                        
-                                    }
-                                }
-
-                            }
-                        }
-
                         label currentZone = 0;
                         labelList faceZone(pp.size(), -1);
 
@@ -267,6 +217,32 @@ int main(int argc, char *argv[])
                             }
 
                             patchAgglomeration[faceI] = coarseFaceI + faceZone[faceI];
+                        }
+
+                        labelListList zones(currentZone);
+
+                        forAll(faceZone, faceI)
+                        {
+                            if (faceZone[faceI] != -1)
+                            {
+                                zones[faceZone[faceI]].append(faceI);
+                            }
+                        }
+
+                        forAll( zones, zoneI)
+                        {
+                            const labelList& zoneFaces = zones[zoneI];
+                            uindirectPrimitivePatch upp
+                            (
+                                UIndirectList<face>(pp, zoneFaces),
+                                pp.points()
+                            );
+
+                            if (upp.edgeLoops().size() != 1)
+                            {
+//                                Info<< upp.edgeLoops() << nl;
+                                Info<< upp.surfaceType() << nl;
+                            }
                         }
 
                         coarseFaceI += currentZone;
