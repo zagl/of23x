@@ -238,10 +238,49 @@ int main(int argc, char *argv[])
                                 pp.points()
                             );
 
+                            Info<< "Zone " << zoneI + coarseFaceI << nl;
+
                             if (upp.edgeLoops().size() != 1)
                             {
-//                                Info<< upp.edgeLoops() << nl;
-                                Info<< upp.surfaceType() << nl;
+                                label outerLoop = -1;
+                                label maxLoopPoints = -1;
+
+                                forAll( upp.edgeLoops(), loopI)
+                                {
+                                    const labelList& edgeLoop = upp.edgeLoops()[loopI];
+                                    Info<< edgeLoop << nl;
+
+                                    if (edgeLoop.size() > maxLoopPoints)
+                                    {
+                                        outerLoop = loopI;
+                                        maxLoopPoints = edgeLoop.size();
+                                    }
+
+                                    if (edgeLoop.size() < 4)
+                                    {
+                                        forAll(edgeLoop, i)
+                                        {
+                                            label pointI = edgeLoop[i];
+                                            const labelList& surroundingEdges = pointEdges[pointI];
+
+                                            forAll( surroundingEdges, i)
+                                            {
+                                                label edgeI = surroundingEdges[i];
+                                                if (edgeFaces[edgeI].size() != 2)
+                                                {
+                                                    Info<< "non manifold" << nl;
+                                                }
+                                            }
+
+
+                                        }
+                                    }
+
+
+
+                                }
+
+                                Info<< outerLoop << nl<< nl;
                             }
                         }
 

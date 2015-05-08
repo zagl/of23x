@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
                     {
                         scalar localLength = baseLength / pow(2, cellLevel[cellI]);
                         pointIndexHit pHit1 =
-                            tree.findNearest(cellCentre, pow(localLength*0.5, 2));
+                            tree.findNearest(cellCentre, pow(localLength*1., 2));
                         if ( pHit1.hit() )
                         {
                             label triangleI = pHit1.index();
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
                             {
                                 point nextSurfPoint = pHit2.hitPoint();
                                 scalar wallThickness = mag(nextSurfPoint - nearestSurfPoint);
-                                if ( wallThickness <= localLength*1.2 )
+                                if ( wallThickness <= localLength*1.7 )
                                 {
                                     regionCells.append(cellI);
                                     isAssigned[cellI] = true;
