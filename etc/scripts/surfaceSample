@@ -33,7 +33,7 @@ createVTK()
             print faces[i]
         print "POINT_DATA", nPoints
         print "FIELD attributes 1"
-        print "T 1", nPoints, "float"
+        print "Temperature 1", nPoints, "float"
         for ( i=0; i<nValues; i++  )
         {
             printf "%s ", values[i]
@@ -45,7 +45,7 @@ createVTK()
 }
 
 solids=$(sed -ne 's/^ *solids[^(]*( \(.*\) );$/\1/p' system/includeDict)
-latestTime=$(ls -d1 [0-9]* | sort -n | tail -1)
+latestTime=$(ls -d1 [0-9]*[0-9] | sort -n | tail -1)
 
 mkdir -p postProcessing
 

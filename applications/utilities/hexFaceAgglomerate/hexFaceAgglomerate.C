@@ -44,6 +44,9 @@ Description
 #include "labelVector.H"
 #include "PatchTools.H"
 #include "uindirectPrimitivePatch.H"
+#include "OFstream.H"
+#include "meshTools.H"
+#include "ListOps.H"
 
 using namespace Foam;
 
@@ -68,6 +71,8 @@ int main(int argc, char *argv[])
 
 
     const polyBoundaryMesh& boundary = mesh.boundaryMesh();
+
+    OFstream debug("debug.obj");
 
 
     labelListIOList finalAgglom
@@ -127,6 +132,7 @@ int main(int argc, char *argv[])
                 const labelListList& edgeFaces = pp.edgeFaces();
                 const labelListList& pointEdges = pp.pointEdges();
                 const edgeList& edges = pp.edges();
+                const pointField& points = pp.points();
 
                 labelList patchAgglomeration(pp.size());
 
@@ -229,7 +235,7 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        forAll( zones, zoneI)
+                        forAll(zones, zoneI)
                         {
                             const labelList& zoneFaces = zones[zoneI];
                             uindirectPrimitivePatch upp
@@ -237,8 +243,6 @@ int main(int argc, char *argv[])
                                 UIndirectList<face>(pp, zoneFaces),
                                 pp.points()
                             );
-
-                            Info<< "Zone " << zoneI + coarseFaceI << nl;
 
                             if (upp.edgeLoops().size() != 1)
                             {
@@ -248,44 +252,114 @@ int main(int argc, char *argv[])
                                 forAll( upp.edgeLoops(), loopI)
                                 {
                                     const labelList& edgeLoop = upp.edgeLoops()[loopI];
-                                    Info<< edgeLoop << nl;
-
                                     if (edgeLoop.size() > maxLoopPoints)
                                     {
                                         outerLoop = loopI;
                                         maxLoopPoints = edgeLoop.size();
                                     }
-
-                                    if (edgeLoop.size() < 4)
-                                    {
-                                        forAll(edgeLoop, i)
-                                        {
-                                            label pointI = edgeLoop[i];
-                                            const labelList& surroundingEdges = pointEdges[pointI];
-
-                                            forAll( surroundingEdges, i)
-                                            {
-                                                label edgeI = surroundingEdges[i];
-                                                if (edgeFaces[edgeI].size() != 2)
-                                                {
-                                                    Info<< "non manifold" << nl;
-                                                }
-                                            }
-
-
-                                        }
-                                    }
-
-
-
                                 }
 
-                                Info<< outerLoop << nl<< nl;
+                                List<List<scalar> > splits(3);
+                                List<label> nSplits(3, 1);
+                                forAll( upp.edgeLoops(), loopI)
+                                {
+                                    if (loopI != outerLoop)
+                                    {
+                                        const labelList& edgeLoop = upp.edgeLoops()[loopI];
+                                        List<point> loopPoints;
+
+                                        forAll( edgeLoop, i)
+                                        {
+                                            loopPoints.append(upp.localPoints()[edgeLoop[i]]);
+                                            meshTools::writeOBJ(debug, upp.localPoints()[edgeLoop[i]]);
+                                        }
+
+                                        boundBox loopbb(loopPoints);
+                                        label longestEdge = findMax(loopbb.span());
+                                        splits[longestEdge].append(loopbb.midpoint()[longestEdge]);
+                                        nSplits[longestEdge]++;
+                                    }
+                                }
+
+                                labelListList order(3);
+                                forAll(splits, i)
+                                {
+                                    splits[i].append(VGREAT);
+                                    sortedOrder(splits[i], order[i]);
+                                }
+
+                                labelList subFaceZone(upp.size(), -1);
+                                labelListList subFaceZones(nSplits[0]*nSplits[1]*nSplits[2]);
+                                forAll( zoneFaces, i )
+                                {
+                                    const label& faceI = zoneFaces[i];
+                                    const point& faceCentre = faceCentres[faceI];
+
+                                    forAll(splits[2], zI)
+                                    {
+                                        scalar z = splits[2][order[2][zI]];
+                                        forAll(splits[1], yI)
+                                        {
+                                            scalar y = splits[1][order[1][yI]];
+                                            forAll(splits[0], xI)
+                                            {
+                                                scalar x = splits[0][order[0][xI]];
+
+                                                if (subFaceZone[i] == -1)
+                                                {
+                                                    if (
+                                                        faceCentre[0] < x
+                                                     && faceCentre[1] < y
+                                                     && faceCentre[2] < z
+                                                    )
+                                                    {
+                                                        label agglomSubCellI = xI + yI*nSplits[0] + zI*nSplits[0]*nSplits[1];
+                                                        subFaceZone[i] = agglomSubCellI;
+                                                        subFaceZones[agglomSubCellI].append(faceI);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                forAll( subFaceZones, zoneI )
+                                {
+                                    const labelList& zoneFaces = subFaceZones[zoneI];
+                                    if (zoneFaces.size() > 0)
+                                    {
+                                        forAll(zoneFaces, i)
+                                        {
+                                            label faceI = zoneFaces[i];
+                                            faceZone[faceI] = currentZone;
+                                            patchAgglomeration[faceI] = coarseFaceI + currentZone;
+
+                                        }
+                                        currentZone++;
+                                    }
+                                }
+
+
+
+
+
+
+
+
+
                             }
+
                         }
 
-                        coarseFaceI += currentZone;
 
+                        forAll( agglomCellFaces, i )
+                        {
+                            label faceI = agglomCellFaces[i];
+                            patchAgglomeration[faceI] = coarseFaceI + faceZone[faceI];
+                        }
+
+
+                        coarseFaceI += currentZone;
                     }
                 }
 

@@ -66,12 +66,27 @@ for dir in 0 logs constant system ; do
     fi
 done
 
+for file in *.wrl ; do
+    vrml2stl.py $file
+    
+    newfile=$(basename $file .wrl).stl
+    
+    if [ -e $newFile ] ; then
+        rm $file
+    else
+        echo "" >&2
+        echo "Conversion of $file failed." >&2
+        echo "" >&2
+        exit $EXIT_ERROR
+    fi
+done
+
 for file in *.{stl,obj,vtk}{,.gz} ; do
     rename 'y/A-Z/a-z/' $file
 done
 
 for file in *.{stl,obj,vtk}{,.gz} ; do
-    test -e $file || continue
+    test -e $file || continue    
     newFile=constant/triSurface/${file%%.*}.obj
     if $TOMM; then
         echo "Scale and move $file"
