@@ -67,17 +67,19 @@ for dir in 0 logs constant system ; do
 done
 
 for file in *.wrl ; do
-    vrml2stl.py $file
-    
-    newfile=$(basename $file .wrl).stl
-    
-    if [ -e $newFile ] ; then
-        rm $file
-    else
-        echo "" >&2
-        echo "Conversion of $file failed." >&2
-        echo "" >&2
-        exit $EXIT_ERROR
+    if [ -e $file ]; then
+        vrml2stl.py $file
+        
+        newfile=$(basename $file .wrl).stl
+        
+        if [ -e $newFile ] ; then
+            rm $file
+        else
+            echo "" >&2
+            echo "Conversion of $file failed." >&2
+            echo "" >&2
+            exit $EXIT_ERROR
+        fi
     fi
 done
 

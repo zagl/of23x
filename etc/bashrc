@@ -7,6 +7,13 @@ function of23x
     PATH=$PATH:$HOME/OpenFOAM/scripts
 }
 
+function of24x
+{
+    . $HOME/OpenFOAM/OpenFOAM-2.4.x/etc/bashrc WM_NCOMPPROCS=4 WM_MPLIB=SYSTEMOPENMPI
+    . $WM_PROJECT_DIR/bin/tools/RunFunctions
+    PATH=$PATH:$HOME/OpenFOAM/scripts
+}
+
 runApp()
 {
     APP_RUN=$1
